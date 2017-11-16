@@ -63,6 +63,44 @@ int loadLibAndPrint(const std::string& targetBinary) {
 
 }
 
+int loadLibAndRun(const std::string& targetBinary) {
+  void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
+
+  if (myLibHandle == nullptr) {
+    printf("dlsym failed: %s\n", dlerror());
+    return -1;
+  }
+
+  cout << "lib handle = " << myLibHandle << endl;
+
+  void* myFuncFunV;
+  myFuncFunV = dlsym(myLibHandle, "_Z8simulatePh");
+  if (myFuncFunV == nullptr) {
+    printf("dlsym failed: %s\n", dlerror());
+    assert(false);
+  } else {
+    printf("FOUND\n");
+  }
+
+  void (*simFunc)(unsigned char*) =
+    reinterpret_cast<void (*)(unsigned char*)>(myFuncFunV);
+
+  unsigned char* buf = (unsigned char*) malloc(16*5);
+  *((uint16_t*)(buf + 0)) = 2;
+  *((uint16_t*)(buf + 2)) = 5;
+  *((uint16_t*)(buf + 4)) = 7;
+  *((uint16_t*)(buf + 6)) = 4;
+  *((uint16_t*)(buf + 8)) = 0;
+
+  simFunc(buf);
+
+  cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
+
+  free(buf);
+
+  return 0;
+}
+
 vector<vdisc> allInputs(const NGraph& g) {
   vector<vdisc> inputs;
   for (auto& vd : g.getVerts()) {
@@ -131,17 +169,12 @@ int main() {
   }
 
   string cppCode =
-    "#include <iostream>\n"
-    "#define EXPORT __attribute__((visibility(\"default\")))\n"
-    "class EXPORT sillyStruct { public:\n\tint i; float j; };\n"
-    "sillyStruct* newSillyStruct() { return new sillyStruct(); }\n"
-    "int sillyFunc(sillyStruct& i) { return i.i; }\n"
-    "int myFunc(int i) {\n"
-    "\treturn 12 + i;\n"
-    "}\n\n"
-    "float otherFunc(float i) {\n"
-    "\treturn i / 12.3;\n"
-    "}\n\n";
+    "#include <stdint.h>\n"
+    "void simulate(unsigned char* state) {\n"
+    "\tuint16_t tmp0 = ((uint16_t*)state)[0] + ((uint16_t*)state)[1];\n"
+    "\tuint16_t tmp1 = ((uint16_t*)state)[2] + ((uint16_t*)state)[3];\n"
+    "\t((uint16_t*)state)[4] = tmp0 + tmp1;\n"
+    "\treturn;\n}\n";
 
   string targetBinary = "./libprog.dylib";
   ofstream out("./prog.cpp");
@@ -153,9 +186,13 @@ int main() {
 
   cout << "clang call ret = " << ret << endl;
 
-  int loadRes = loadLibAndPrint(targetBinary);
+  //int loadRes = loadLibAndPrint(targetBinary);
+
+  int loadRes = loadLibAndRun(targetBinary);
 
   deleteContext(c);
 
-  return loadRes;
+  //return loadRes;
+
+  return 0;
 }
