@@ -12,9 +12,30 @@
 using namespace CoreIR;
 using namespace std;
 
+
 struct MemLayout {
   std::map<CoreIR::Select*, int> offsets;
 };
+
+vector<vdisc> allInputs(const NGraph& g) {
+  vector<vdisc> inputs;
+  for (auto& vd : g.getVerts()) {
+    if (isGraphInput(g.getNode(vd))) {
+      inputs.push_back(vd);
+    }
+  }
+  return inputs;
+}
+
+vector<vdisc> allOutputs(const NGraph& g) {
+  vector<vdisc> outputs;
+  for (auto& vd : g.getVerts()) {
+    if (isGraphOutput(g.getNode(vd))) {
+      outputs.push_back(vd);
+    }
+  }
+  return outputs;
+}
 
 void setUint16(const uint16_t value,
                CoreIR::Select* target,
@@ -25,7 +46,8 @@ void setUint16(const uint16_t value,
 }
 
 int loadLibAndRun(const std::string& targetBinary,
-                  const MemLayout& mem) {
+                  const MemLayout& layout,
+                  const NGraph& gr) {
   void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
 
   if (myLibHandle == nullptr) {
@@ -47,12 +69,21 @@ int loadLibAndRun(const std::string& targetBinary,
   void (*simFunc)(unsigned char*) =
     reinterpret_cast<void (*)(unsigned char*)>(myFuncFunV);
 
+  
   unsigned char* buf = (unsigned char*) malloc(16*5);
-  *((uint16_t*)(buf + 0)) = 2;
-  *((uint16_t*)(buf + 2)) = 5;
-  *((uint16_t*)(buf + 4)) = 7;
-  *((uint16_t*)(buf + 6)) = 4;
-  *((uint16_t*)(buf + 8)) = 0;
+
+  vector<vdisc> ins = allInputs(gr);
+  int value = 2;
+  for (auto& in : ins) {
+    Select* sel = toSelect(gr.getNode(in).getWire());
+    setUint16(value, sel, layout, buf);
+  }
+  
+  // *((uint16_t*)(buf + 0)) = 2;
+  // *((uint16_t*)(buf + 2)) = 5;
+  // *((uint16_t*)(buf + 4)) = 7;
+  // *((uint16_t*)(buf + 6)) = 4;
+  // *((uint16_t*)(buf + 8)) = 0;
 
   simFunc(buf);
 
@@ -63,26 +94,6 @@ int loadLibAndRun(const std::string& targetBinary,
   dlclose(myLibHandle);
 
   return 0;
-}
-
-vector<vdisc> allInputs(const NGraph& g) {
-  vector<vdisc> inputs;
-  for (auto& vd : g.getVerts()) {
-    if (isGraphInput(g.getNode(vd))) {
-      inputs.push_back(vd);
-    }
-  }
-  return inputs;
-}
-
-vector<vdisc> allOutputs(const NGraph& g) {
-  vector<vdisc> outputs;
-  for (auto& vd : g.getVerts()) {
-    if (isGraphOutput(g.getNode(vd))) {
-      outputs.push_back(vd);
-    }
-  }
-  return outputs;
 }
 
 int main() {
@@ -125,7 +136,7 @@ int main() {
 
     layout.offsets.insert({sel, off});
 
-    off += containerTypeWidth(*(sel->getType()));
+    off += containerTypeWidth(*(sel->getType())) / 8;
     cout << "offset = " << off << endl;
   }
 
@@ -135,7 +146,7 @@ int main() {
 
     layout.offsets.insert({sel, off});
 
-    off += containerTypeWidth(*(sel->getType()));
+    off += containerTypeWidth(*(sel->getType())) / 8;
     cout << "offset = " << off << endl;
   }
 
@@ -155,7 +166,7 @@ int main() {
 
   assert(ret == 0);
 
-  int loadRes = loadLibAndRun(targetBinary, layout);
+  int loadRes = loadLibAndRun(targetBinary, layout, gr);
 
   deleteContext(c);
 
