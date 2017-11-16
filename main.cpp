@@ -12,58 +12,20 @@
 using namespace CoreIR;
 using namespace std;
 
-int loadLibAndPrint(const std::string& targetBinary) {
-  void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
+struct MemLayout {
+  std::map<CoreIR::Select*, int> offsets;
+};
 
-  if (myLibHandle == nullptr) {
-    printf("dlsym failed: %s\n", dlerror());
-    return -1;
-  }
-
-  cout << "lib handle = " << myLibHandle << endl;
-
-  void* myFuncFunV;
-  myFuncFunV = dlsym(myLibHandle, "_Z6myFunci");
-  if (myFuncFunV == nullptr) {
-    printf("dlsym failed: %s\n", dlerror());
-    assert(false);
-  } else {
-    printf("FOUND\n");
-  }
-
-  int (*myFuncCall)(int) =
-    reinterpret_cast<int (*)(int)>(myFuncFunV);
-
-  cout << "myFunc = " << myFuncCall(12) << endl;
-
-  myFuncFunV = dlsym(myLibHandle, "_Z9otherFuncf");
-  if (myFuncFunV == nullptr) {
-    printf("dlsym failed: %s\n", dlerror());
-    assert(false);
-  } else {
-    printf("FOUND!\n");
-  }
-
-  float (*otherFuncCall)(float) =
-    reinterpret_cast<float (*)(float)>(myFuncFunV);
-
-  cout << "otherFuncCall = " << otherFuncCall(12) << endl;
-
-  myFuncFunV = dlsym(myLibHandle, "_Z14newSillyStructv");
-  if (myFuncFunV == nullptr) {
-    printf("dlsym failed: %s\n", dlerror());
-    assert(false);
-  } else {
-    printf("FOUND!\n");
-  }
-
-  dlclose(myLibHandle);
-
-  return 0;
-
+void setUint16(const uint16_t value,
+               CoreIR::Select* target,
+               const MemLayout& layout,
+               unsigned char* buffer) {
+  int offset = layout.offsets.find(target)->second;
+  *((uint16_t*)(buffer + offset)) = value;
 }
 
-int loadLibAndRun(const std::string& targetBinary) {
+int loadLibAndRun(const std::string& targetBinary,
+                  const MemLayout& mem) {
   void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
 
   if (myLibHandle == nullptr) {
@@ -97,6 +59,8 @@ int loadLibAndRun(const std::string& targetBinary) {
   cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
 
   free(buf);
+
+  dlclose(myLibHandle);
 
   return 0;
 }
@@ -151,21 +115,28 @@ int main() {
   cout << "# of outputs = " << ins.size() << endl;
 
   assert(outs.size() == 1);
-  
+
+  MemLayout layout;
   vector<Type*> bufferLayout;
+  int off = 0;
   for (auto& vd : ins) {
-    bufferLayout.push_back(gr.getNode(vd).getWire()->getType());
-  }
-  for (auto& vd : outs) {
-    bufferLayout.push_back(gr.getNode(vd).getWire()->getType());
+    Select* sel =
+      toSelect(gr.getNode(vd).getWire());
+
+    layout.offsets.insert({sel, off});
+
+    off += containerTypeWidth(*(sel->getType()));
+    cout << "offset = " << off << endl;
   }
 
-  vector<int> inputOffsets;
-  int offset = 0;
-  for (auto& tp : bufferLayout) {
-    cout << "Offset = " << offset << endl;
-    inputOffsets.push_back(offset);
-    offset += containerTypeWidth(*tp);
+  for (auto& vd : outs) {
+    Select* sel =
+      toSelect(gr.getNode(vd).getWire());
+
+    layout.offsets.insert({sel, off});
+
+    off += containerTypeWidth(*(sel->getType()));
+    cout << "offset = " << off << endl;
   }
 
   string cppCode =
@@ -184,15 +155,9 @@ int main() {
 
   assert(ret == 0);
 
-  cout << "clang call ret = " << ret << endl;
-
-  //int loadRes = loadLibAndPrint(targetBinary);
-
-  int loadRes = loadLibAndRun(targetBinary);
+  int loadRes = loadLibAndRun(targetBinary, layout);
 
   deleteContext(c);
 
-  //return loadRes;
-
-  return 0;
+  return loadRes;
 }
