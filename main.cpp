@@ -37,6 +37,88 @@ vector<vdisc> allOutputs(const NGraph& g) {
   return outputs;
 }
 
+string libCode(const NGraph& gr,
+               const MemLayout& layout) {
+  string str =
+    "#include <stdint.h>\n"
+    "void simulate(unsigned char* state) {\n";
+
+  auto topoOrder = topologicalSort(gr);
+
+  int nextVar = 0;
+  map<Select*, int> varNames;
+
+  for (auto& nd : topoOrder) {
+    WireNode wd = gr.getNode(nd);
+
+    if (isGraphInput(wd)) {
+      Select* sel = toSelect(wd.getWire());
+      varNames.insert({sel, nextVar});
+
+      string vName = "tmp_" + to_string(nextVar);
+      str += "uint16_t " + vName + " = *((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "));\n";
+
+      nextVar++;
+    } else if (isGraphOutput(wd)) {
+
+      Select* sel = toSelect(wd.getWire());
+      auto inConns = getInputConnections(nd, gr);
+
+      assert(inConns.size() == 1);
+
+      InstanceValue arg1 = inConns[0].first;
+      str += "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + ")) = tmp_" + to_string(varNames[arg1.getWire()]) + ";\n";
+      
+    } else {
+      cout << "Instance" << endl;
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inConns = getInputConnections(nd, gr);
+
+      assert(inConns.size() == 2);
+
+      auto outSelects = getOutputSelects(inst);
+
+      assert(outSelects.size() == 1);
+
+      cout << "Creating strings" << endl;
+
+      string operand0 =
+        "tmp_" + to_string(varNames[inConns[0].first.getWire()]);
+      string operand1 =
+        "tmp_" + to_string(varNames[inConns[1].first.getWire()]);
+
+      string vName = "tmp_" + to_string(nextVar);
+
+      cout << "Created temps" << endl;
+
+      Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+
+      cout << "Building outSelects" << endl;
+
+      varNames.insert({toSelect(outSel), nextVar});
+
+      cout << "Added nextVar" << endl;
+
+      str += "uint16_t " + vName + " = " + operand0 + " + " + operand1 + ";\n";
+
+      nextVar++;
+
+      cout << "Done instance" << endl;
+    }
+  }
+
+  str += "\n}\n";
+    
+  // "void simulate(unsigned char* state) {\n"
+  // "\tuint16_t tmp0 = ((uint16_t*)state)[0] + ((uint16_t*)state)[1];\n"
+  // "\tuint16_t tmp1 = ((uint16_t*)state)[2] + ((uint16_t*)state)[3];\n"
+  // "\t((uint16_t*)state)[4] = tmp0 + tmp1;\n"
+  // "\treturn;\n}\n";
+
+  return str;
+}
+
 void setUint16(const uint16_t value,
                CoreIR::Select* target,
                const MemLayout& layout,
@@ -69,7 +151,6 @@ int loadLibAndRun(const std::string& targetBinary,
   void (*simFunc)(unsigned char*) =
     reinterpret_cast<void (*)(unsigned char*)>(myFuncFunV);
 
-  
   unsigned char* buf = (unsigned char*) malloc(16*5);
 
   vector<vdisc> ins = allInputs(gr);
@@ -77,13 +158,8 @@ int loadLibAndRun(const std::string& targetBinary,
   for (auto& in : ins) {
     Select* sel = toSelect(gr.getNode(in).getWire());
     setUint16(value, sel, layout, buf);
+    value += 3;
   }
-  
-  // *((uint16_t*)(buf + 0)) = 2;
-  // *((uint16_t*)(buf + 2)) = 5;
-  // *((uint16_t*)(buf + 4)) = 7;
-  // *((uint16_t*)(buf + 6)) = 4;
-  // *((uint16_t*)(buf + 8)) = 0;
 
   simFunc(buf);
 
@@ -150,13 +226,8 @@ int main() {
     cout << "offset = " << off << endl;
   }
 
-  string cppCode =
-    "#include <stdint.h>\n"
-    "void simulate(unsigned char* state) {\n"
-    "\tuint16_t tmp0 = ((uint16_t*)state)[0] + ((uint16_t*)state)[1];\n"
-    "\tuint16_t tmp1 = ((uint16_t*)state)[2] + ((uint16_t*)state)[3];\n"
-    "\t((uint16_t*)state)[4] = tmp0 + tmp1;\n"
-    "\treturn;\n}\n";
+  
+  string cppCode = libCode(gr, layout);
 
   string targetBinary = "./libprog.dylib";
   ofstream out("./prog.cpp");
