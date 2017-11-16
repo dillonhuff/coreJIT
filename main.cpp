@@ -7,6 +7,9 @@
 
 #include <dlfcn.h>
 
+#include "coreir.h"
+
+
 using namespace std;
 
 int main() {
