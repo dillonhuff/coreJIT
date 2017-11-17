@@ -111,14 +111,12 @@ namespace CoreJIT {
     *((uint16_t*)(buffer + offset)) = value;
   }
 
-  int loadLibAndRun(const std::string& targetBinary,
-                    const MemLayout& layout,
-                    const NGraph& gr) {
+  DylibInfo loadLibWithFunc(const std::string& targetBinary) {
     void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
 
     if (myLibHandle == nullptr) {
       printf("dlsym failed: %s\n", dlerror());
-      return -1;
+      assert(false);
     }
 
     cout << "lib handle = " << myLibHandle << endl;
@@ -132,8 +130,17 @@ namespace CoreJIT {
       printf("FOUND\n");
     }
 
+    return {myLibHandle, myFuncFunV};
+  }
+
+  int loadLibAndRun(const std::string& targetBinary,
+                    const MemLayout& layout,
+                    const NGraph& gr) {
+
+    DylibInfo dlib = loadLibWithFunc(targetBinary);
+
     void (*simFunc)(unsigned char*) =
-      reinterpret_cast<void (*)(unsigned char*)>(myFuncFunV);
+      reinterpret_cast<void (*)(unsigned char*)>(dlib.simFuncHandle);
 
     unsigned char* buf = (unsigned char*) malloc(16*5);
 
@@ -151,7 +158,7 @@ namespace CoreJIT {
 
     free(buf);
 
-    dlclose(myLibHandle);
+    dlclose(dlib.libHandle);
 
     return 0;
   }

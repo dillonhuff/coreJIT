@@ -8,6 +8,11 @@ namespace CoreJIT {
     std::map<CoreIR::Select*, int> offsets;
   };
 
+  struct DylibInfo {
+    void* libHandle;
+    void* simFuncHandle;
+  };
+
   MemLayout buildLayout(const CoreIR::NGraph& gr);
 
   int loadLibAndRun(const std::string& targetBinary,

@@ -35,6 +35,7 @@ int main() {
   string cppCode = libCode(gr, layout);
 
   string targetBinary = "./libprog.dylib";
+  string targetName = "./prog.cpp";
   ofstream out("./prog.cpp");
   out << cppCode << endl;
   int ret =
