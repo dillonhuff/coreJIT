@@ -33,27 +33,11 @@ TEST_CASE("Dynamic code generation for add4") {
   buildOrderedGraph(m, gr);
 
   JITInfo simLib = buildSimLib(m, gr);
-
   MemLayout& layout = simLib.layout; //buildLayout(gr);
 
   SECTION("5 uint 16s take up 10 bytes of space") {
     REQUIRE(layout.byteLength() == 10);
   }
-
-  // string cppCode = libCode(gr, layout);
-
-  // string targetBinary = "./libprog.dylib";
-  // string cppName = "./prog.cpp";
-  // ofstream out(cppName);
-  // out << cppCode << endl;
-  // int ret =
-  //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
-
-  // REQUIRE(ret == 0);
-
-  // int loadRes = loadLibAndRun(targetBinary, layout, gr);
-
-  // REQUIRE(loadRes == 0);
 
   deleteContext(c);
 
