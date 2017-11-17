@@ -5,8 +5,6 @@
 using namespace std;
 using namespace CoreIR;
 
-#include <dlfcn.h>
-
 namespace CoreJIT {
 
   vector<vdisc> allInputs(const NGraph& g) {

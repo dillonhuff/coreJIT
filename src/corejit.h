@@ -2,6 +2,8 @@
 
 #include "coreir.h"
 
+#include <dlfcn.h>
+
 namespace CoreJIT {
 
   struct MemLayout {
@@ -36,6 +38,14 @@ namespace CoreJIT {
 
     int byteLength() const { return layout.byteLength(); }
   };
+
+  std::vector<CoreIR::vdisc> allInputs(const CoreIR::NGraph& g);
+  std::vector<CoreIR::vdisc> allOutputs(const CoreIR::NGraph& g);
+
+  void setUint16(const uint16_t value,
+                 CoreIR::Select* target,
+                 const MemLayout& layout,
+                 unsigned char* buffer);
 
   JITInfo buildSimLib(CoreIR::Module* m,
                       const CoreIR::NGraph& gr);
