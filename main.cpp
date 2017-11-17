@@ -172,25 +172,7 @@ int loadLibAndRun(const std::string& targetBinary,
   return 0;
 }
 
-int main() {
-
-  Context* c = newContext();
-  Namespace* g = c->getGlobal();
-  
-  if (!loadFromFile(c,"./add4.json")) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-
-  c->runPasses({"rungenerators","flattentypes","flatten"});
-
-  Module* m = g->getModule("add4");
-
-  assert(m != nullptr);
-
-  NGraph gr;
-  buildOrderedGraph(m, gr);
-
+MemLayout buildLayout(const NGraph& gr) {
   vector<vdisc> ins = allInputs(gr);
 
   cout << "# of inputs = " << ins.size() << endl;
@@ -226,7 +208,30 @@ int main() {
     cout << "offset = " << off << endl;
   }
 
+  return layout;
+}
+
+int main() {
+
+  Context* c = newContext();
+  Namespace* g = c->getGlobal();
   
+  if (!loadFromFile(c,"./add4.json")) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+
+  c->runPasses({"rungenerators","flattentypes","flatten"});
+
+  Module* m = g->getModule("add4");
+
+  assert(m != nullptr);
+
+  NGraph gr;
+  buildOrderedGraph(m, gr);
+
+  MemLayout layout = buildLayout(gr);
+
   string cppCode = libCode(gr, layout);
 
   string targetBinary = "./libprog.dylib";
