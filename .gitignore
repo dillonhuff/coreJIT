@@ -3,3 +3,7 @@ a.out
 libprog.dylib
 prog.cpp
 a.out.dSYM/
+CMakeCache.txt
+CMakeFiles/
+all-tests
+cmake_install.cmake

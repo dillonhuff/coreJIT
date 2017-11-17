@@ -123,6 +123,33 @@ all-tests/fast:
 	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/build
 .PHONY : all-tests/fast
 
+src/corejit.o: src/corejit.cpp.o
+
+.PHONY : src/corejit.o
+
+# target to build an object file
+src/corejit.cpp.o:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/corejit.cpp.o
+.PHONY : src/corejit.cpp.o
+
+src/corejit.i: src/corejit.cpp.i
+
+.PHONY : src/corejit.i
+
+# target to preprocess a source file
+src/corejit.cpp.i:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/corejit.cpp.i
+.PHONY : src/corejit.cpp.i
+
+src/corejit.s: src/corejit.cpp.s
+
+.PHONY : src/corejit.s
+
+# target to generate assembly for a file
+src/corejit.cpp.s:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/corejit.cpp.s
+.PHONY : src/corejit.cpp.s
+
 test/main.o: test/main.cpp.o
 
 .PHONY : test/main.o
@@ -159,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... all-tests"
+	@echo "... src/corejit.o"
+	@echo "... src/corejit.i"
+	@echo "... src/corejit.s"
 	@echo "... test/main.o"
 	@echo "... test/main.i"
 	@echo "... test/main.s"
