@@ -13,6 +13,8 @@ namespace CoreJIT {
     void* simFuncHandle;
   };
 
+  DylibInfo loadLibWithFunc(const std::string& targetBinary);  
+
   MemLayout buildLayout(const CoreIR::NGraph& gr);
 
   int loadLibAndRun(const std::string& targetBinary,

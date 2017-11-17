@@ -1,17 +1,22 @@
+#define CATCH_CONFIG_MAIN
+
 #include <cassert>
-#include <iostream>
+#include <cstdio>
 #include <fstream>
+#include <iostream>
 #include <string>
 
-#include <cstdio>
-
 #include "corejit.h"
+
+#include "catch.hpp"
 
 using namespace CoreIR;
 using namespace CoreJIT;
 using namespace std;
 
-int main() {
+//int main() {
+
+TEST_CASE("Dynamic code generation for add4") {
 
   Context* c = newContext();
   Namespace* g = c->getGlobal();
@@ -45,7 +50,8 @@ int main() {
 
   int loadRes = loadLibAndRun(targetBinary, layout, gr);
 
+  assert(loadRes == 0);
+
   deleteContext(c);
 
-  return loadRes;
 }
