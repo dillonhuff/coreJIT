@@ -27,6 +27,10 @@ namespace CoreJIT {
     return outputs;
   }
 
+  string tmpVarName(const int i) {
+    return "tmp_" + to_string(i);
+  }
+
   string libCode(const NGraph& gr,
                  const MemLayout& layout) {
     string str =
@@ -60,39 +64,69 @@ namespace CoreJIT {
         str += "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + ")) = tmp_" + to_string(varNames[arg1.getWire()]) + ";\n";
       
       } else {
-        cout << "Instance" << endl;
+
         Instance* inst = toInstance(wd.getWire());
 
+        cout << "Instance " << inst->toString() << " : " << getQualifiedOpName(*inst) << endl;
         auto inConns = getInputConnections(nd, gr);
 
-        assert(inConns.size() == 2);
+        if (inConns.size() == 2) {
 
-        auto outSelects = getOutputSelects(inst);
+          auto outSelects = getOutputSelects(inst);
 
-        assert(outSelects.size() == 1);
+          assert(outSelects.size() == 1);
 
-        cout << "Creating strings" << endl;
+          string operand0 =
+            "tmp_" + to_string(varNames[inConns[0].first.getWire()]);
+          string operand1 =
+            "tmp_" + to_string(varNames[inConns[1].first.getWire()]);
 
-        string operand0 =
-          "tmp_" + to_string(varNames[inConns[0].first.getWire()]);
-        string operand1 =
-          "tmp_" + to_string(varNames[inConns[1].first.getWire()]);
+          string vName = "tmp_" + to_string(nextVar);
 
-        string vName = "tmp_" + to_string(nextVar);
+          Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+          varNames.insert({toSelect(outSel), nextVar});
 
-        cout << "Created temps" << endl;
+          str += "uint16_t " + vName + " = " + operand0 + " + " + operand1 + ";\n";
 
-        Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+          nextVar++;
+        } else if (inConns.size() == 0) {
 
-        cout << "Building outSelects" << endl;
+          assert(getQualifiedOpName(*inst) == "coreir.const");
 
-        varNames.insert({toSelect(outSel), nextVar});
+          bool foundValue = false;
+          
+          string argStr = "";
+          for (auto& arg : inst->getModArgs()) {
+            if (arg.first == "value") {
+              foundValue = true;
+              Value* valArg = arg.second;
 
-        cout << "Added nextVar" << endl;
+              cout << "Value type = " << valArg->getValueType()->toString() << endl;
 
-        str += "uint16_t " + vName + " = " + operand0 + " + " + operand1 + ";\n";
+              BitVector bv = valArg->get<BitVector>();
+              stringstream ss;
+              ss << "0b" << bv;
+              argStr = ss.str();
+            }
+          }
 
-        nextVar++;
+          assert(foundValue);
+
+          auto outSelects = getOutputSelects(inst);
+
+          assert(outSelects.size() == 1);
+
+          string vName = "tmp_" + to_string(nextVar);
+
+          cout << "Created temps" << endl;
+
+          Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+          
+          varNames.insert({toSelect(outSel), nextVar});
+          nextVar++;
+        } else {
+          assert(false);
+        }
 
         cout << "Done instance" << endl;
       }
@@ -163,18 +197,31 @@ namespace CoreJIT {
     return 0;
   }
 
+  int bufferTypeWidth(CoreIR::Type& tp) {
+    if (isPrimitiveType(tp)) {
+      return containerTypeWidth(tp) / 8;
+    }
+
+    Type::TypeKind tk = tp.getKind();
+
+    assert(tk == Type::TK_Named);
+
+    NamedType& ntp =
+      static_cast<NamedType&>(tp);
+
+    assert(ntp.getName() == "clk");
+
+    return 8*2; // 1 byte for this clock, one byte for last clock
+  }
+
   MemLayout buildLayout(const NGraph& gr) {
     vector<vdisc> ins = allInputs(gr);
 
     cout << "# of inputs = " << ins.size() << endl;
 
-    assert(ins.size() == 4);
-
     vector<vdisc> outs = allOutputs(gr);
 
     cout << "# of outputs = " << ins.size() << endl;
-
-    assert(outs.size() == 1);
 
     MemLayout layout;
     vector<Type*> bufferLayout;
@@ -185,7 +232,8 @@ namespace CoreJIT {
 
       layout.offsets.insert({sel, off});
 
-      off += containerTypeWidth(*(sel->getType())) / 8;
+      cout << "Select type = " << (sel->getType())->toString() << endl;
+      off += bufferTypeWidth(*(sel->getType())); 
       cout << "offset = " << off << endl;
     }
 

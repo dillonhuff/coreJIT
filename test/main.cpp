@@ -82,12 +82,22 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     c->die();
   }
 
-  c->runPasses({"rungenerators","flattentypes","flatten"});
+  c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
 
   Module* m = g->getModule("DesignTop");
 
   REQUIRE(m != nullptr);
 
-  
+  NGraph gr;
+  buildOrderedGraph(m, gr);
+
+  JITInfo simLib = buildSimLib(m, gr);
+  MemLayout& layout = simLib.layout;
+
+  SECTION("DesignTop requires 16 + 16 + 8 = 40 bits of inputs") {
+    REQUIRE(layout.byteLength() == 5);
+  }
+
+  deleteContext(c);
   
 }
