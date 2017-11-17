@@ -5,13 +5,40 @@
 namespace CoreJIT {
 
   struct MemLayout {
+  protected:
+
+  public:
+
+    MemLayout() {}
+
     std::map<CoreIR::Select*, int> offsets;
+
+    int byteLength() const {
+      int len = 0;
+
+      for (auto& elem : offsets) {
+        len += containerTypeWidth(*(elem.first->getType())) / 8;
+      }
+      
+      return len;
+    }
   };
 
   struct DylibInfo {
     void* libHandle;
     void* simFuncHandle;
   };
+
+  class JITInfo {
+  public:
+    MemLayout layout;
+    DylibInfo libInfo;
+
+    int byteLength() const { return layout.byteLength(); }
+  };
+
+  JITInfo buildSimLib(CoreIR::Module* m,
+                      const CoreIR::NGraph& gr);
 
   DylibInfo loadLibWithFunc(const std::string& targetBinary);  
 

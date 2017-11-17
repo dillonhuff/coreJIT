@@ -1,5 +1,7 @@
 #include "corejit.h"
 
+#include <fstream>
+
 using namespace std;
 using namespace CoreIR;
 
@@ -200,6 +202,26 @@ namespace CoreJIT {
     }
 
     return layout;
+  }
+
+  JITInfo buildSimLib(CoreIR::Module* m,
+                      const CoreIR::NGraph& gr) {
+    MemLayout layout = buildLayout(gr);
+
+    string cppCode = libCode(gr, layout);
+
+    string targetBinary = "./libprog.dylib";
+    string cppName = "./prog.cpp";
+    ofstream out(cppName);
+    out << cppCode << endl;
+    int ret =
+      system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+
+    assert(ret == 0);
+
+    DylibInfo dlib = loadLibWithFunc(targetBinary);
+
+    return {layout, dlib};
   }
 
 }

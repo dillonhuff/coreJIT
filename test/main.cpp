@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -13,8 +12,6 @@
 using namespace CoreIR;
 using namespace CoreJIT;
 using namespace std;
-
-//int main() {
 
 TEST_CASE("Dynamic code generation for add4") {
 
@@ -35,22 +32,28 @@ TEST_CASE("Dynamic code generation for add4") {
   NGraph gr;
   buildOrderedGraph(m, gr);
 
-  MemLayout layout = buildLayout(gr);
+  JITInfo simLib = buildSimLib(m, gr);
 
-  string cppCode = libCode(gr, layout);
+  MemLayout& layout = simLib.layout; //buildLayout(gr);
 
-  string targetBinary = "./libprog.dylib";
-  string cppName = "./prog.cpp";
-  ofstream out(cppName);
-  out << cppCode << endl;
-  int ret =
-    system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+  SECTION("5 uint 16s take up 10 bytes of space") {
+    REQUIRE(layout.byteLength() == 10);
+  }
 
-  REQUIRE(ret == 0);
+  // string cppCode = libCode(gr, layout);
 
-  int loadRes = loadLibAndRun(targetBinary, layout, gr);
+  // string targetBinary = "./libprog.dylib";
+  // string cppName = "./prog.cpp";
+  // ofstream out(cppName);
+  // out << cppCode << endl;
+  // int ret =
+  //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
 
-  REQUIRE(loadRes == 0);
+  // REQUIRE(ret == 0);
+
+  // int loadRes = loadLibAndRun(targetBinary, layout, gr);
+
+  // REQUIRE(loadRes == 0);
 
   deleteContext(c);
 
