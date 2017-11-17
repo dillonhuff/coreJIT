@@ -216,7 +216,7 @@ int main() {
   Context* c = newContext();
   Namespace* g = c->getGlobal();
   
-  if (!loadFromFile(c,"./add4.json")) {
+  if (!loadFromFile(c,"./test/inputs/add4.json")) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
