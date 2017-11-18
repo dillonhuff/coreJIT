@@ -23,6 +23,15 @@ namespace CoreJIT {
     }
 
     std::string outputVarName(CoreIR::Wireable& outSel) const {
+      if (isRegisterInstance(&outSel)) {
+        Instance* inst = toInstance(&outSel);
+        Select* sel = inst->sel("out");
+        return outputVarName(sel);
+      }
+
+      if (isMemoryInstance(&outSel)) {
+        assert(false);
+      }
 
       Select* sel = toSelect(&outSel);
       string str = "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
