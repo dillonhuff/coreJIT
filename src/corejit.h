@@ -11,20 +11,20 @@ namespace CoreJIT {
   struct MemLayout {
   protected:
 
+    int byteLen;
+
   public:
 
-    MemLayout() {}
+    MemLayout() : byteLen(0) {}
 
     std::map<CoreIR::Select*, int> offsets;
 
     int byteLength() const {
-      int len = 0;
+      return byteLen;
+    }
 
-      for (auto& elem : offsets) {
-        len += bufferTypeWidth(*(elem.first->getType()));
-      }
-      
-      return len;
+    void setByteLength(const int newLen) {
+      byteLen = newLen;
     }
   };
 

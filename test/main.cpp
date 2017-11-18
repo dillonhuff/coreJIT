@@ -96,11 +96,18 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
 
     int bl = layout.byteLength();
 
-    REQUIRE(layout.byteLength() > 6);
+    cout << "Byte length = " << bl << endl;
+
+    // 2 input
+    // 2 output
+    // 2 last + current clock
+    // Registers
+    // 2 * 10 Memory
+    REQUIRE(layout.byteLength() == 50);
   }
 
-  JITInfo simLib = buildSimLib(m, gr);
-  MemLayout& layout = simLib.layout;
+  // JITInfo simLib = buildSimLib(m, gr);
+  // MemLayout& layout = simLib.layout;
 
   deleteContext(c);
   

@@ -169,6 +169,8 @@ namespace CoreJIT {
     MemLayout layout;
     vector<Type*> bufferLayout;
     int off = 0;
+
+    // Add inputs to layout
     for (auto& vd : ins) {
       Select* sel =
         toSelect(gr.getNode(vd).getWire());
@@ -180,6 +182,7 @@ namespace CoreJIT {
       cout << "offset = " << off << endl;
     }
 
+    // Add outputs to layout
     for (auto& vd : outs) {
       Select* sel =
         toSelect(gr.getNode(vd).getWire());
@@ -189,6 +192,42 @@ namespace CoreJIT {
       off += bufferTypeWidth(*(sel->getType()));
       cout << "offset = " << off << endl;
     }
+
+    // Add registers to layout
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+        Instance* inst = toInstance(wd.getWire());
+        Select* outSel = inst->sel("out");
+        layout.offsets.insert({outSel, off});
+
+        off += bufferTypeWidth(*(outSel->getType()));
+        cout << "register offset = " << off << endl;
+      }
+    }
+
+    // Add memory to layout
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isMemoryInstance(wd.getWire()) && wd.isReceiver) {
+        Instance* inst = toInstance(wd.getWire());
+
+        Values args = inst->getModuleRef()->getGenArgs();
+        uint width = (args["width"])->get<int>();
+        uint depth = (args["depth"])->get<int>();
+        
+        // Key memory off of wdata
+        Select* outSel = inst->sel("wdata");
+        layout.offsets.insert({outSel, off});
+
+        off += (width / 8)*depth;
+        cout << "memory offset = " << off << endl;
+      }
+    }
+
+    layout.setByteLength(off);
 
     return layout;
   }
