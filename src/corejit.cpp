@@ -7,6 +7,34 @@ using namespace CoreIR;
 
 namespace CoreJIT {
 
+  class CharBufLayout : public LayoutPolicy {
+    MemLayout layout;
+
+  public:
+
+    CharBufLayout(const MemLayout& layout_) : layout(layout_) {}
+
+    std::string lastClkVarName(InstanceValue& clk) const {
+      assert(false);
+    }
+
+    std::string clkVarName(InstanceValue& clk) const {
+      assert(false);
+    }
+
+    std::string outputVarName(CoreIR::Wireable& outSel) const {
+      Select* sel = toSelect(&outSel);
+      string str = "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+      return str;
+    }
+
+    std::string outputVarName(const InstanceValue& val) const {
+      return outputVarName(*(val.getWire()));
+    }
+
+  };
+  
   vector<vdisc> allInputs(const NGraph& g) {
     vector<vdisc> inputs;
     for (auto& vd : g.getVerts()) {
@@ -31,7 +59,8 @@ namespace CoreJIT {
     return "tmp_" + to_string(i);
   }
 
-  string libCode(const NGraph& gr,
+  string libCode(CoreIR::Module* m,
+                 NGraph& gr,
                  const MemLayout& layout) {
     string str =
       "#include <stdint.h>\n"
@@ -39,100 +68,106 @@ namespace CoreJIT {
 
     auto topoOrder = topologicalSort(gr);
 
-    int nextVar = 0;
-    map<Select*, int> varNames;
-
-    for (auto& nd : topoOrder) {
-      WireNode wd = gr.getNode(nd);
-
-      if (isGraphInput(wd)) {
-        Select* sel = toSelect(wd.getWire());
-        varNames.insert({sel, nextVar});
-
-        string vName = "tmp_" + to_string(nextVar);
-        str += "uint16_t " + vName + " = *((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "));\n";
-
-        nextVar++;
-      } else if (isGraphOutput(wd)) {
-
-        Select* sel = toSelect(wd.getWire());
-        auto inConns = getInputConnections(nd, gr);
-
-        assert(inConns.size() == 1);
-
-        InstanceValue arg1 = inConns[0].first;
-        str += "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + ")) = tmp_" + to_string(varNames[arg1.getWire()]) + ";\n";
-      
-      } else {
-
-        Instance* inst = toInstance(wd.getWire());
-
-        cout << "Instance " << inst->toString() << " : " << getQualifiedOpName(*inst) << endl;
-        auto inConns = getInputConnections(nd, gr);
-
-        if (inConns.size() == 2) {
-
-          auto outSelects = getOutputSelects(inst);
-
-          assert(outSelects.size() == 1);
-
-          string operand0 =
-            "tmp_" + to_string(varNames[inConns[0].first.getWire()]);
-          string operand1 =
-            "tmp_" + to_string(varNames[inConns[1].first.getWire()]);
-
-          string vName = "tmp_" + to_string(nextVar);
-
-          Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
-          varNames.insert({toSelect(outSel), nextVar});
-
-          str += "uint16_t " + vName + " = " + operand0 + " + " + operand1 + ";\n";
-
-          nextVar++;
-        } else if (inConns.size() == 0) {
-
-          assert(getQualifiedOpName(*inst) == "coreir.const");
-
-          bool foundValue = false;
-          
-          string argStr = "";
-          for (auto& arg : inst->getModArgs()) {
-            if (arg.first == "value") {
-              foundValue = true;
-              Value* valArg = arg.second;
-
-              cout << "Value type = " << valArg->getValueType()->toString() << endl;
-
-              BitVector bv = valArg->get<BitVector>();
-              stringstream ss;
-              ss << "0b" << bv;
-              argStr = ss.str();
-            }
-          }
-
-          assert(foundValue);
-
-          auto outSelects = getOutputSelects(inst);
-
-          assert(outSelects.size() == 1);
-
-          string vName = "tmp_" + to_string(nextVar);
-
-          cout << "Created temps" << endl;
-
-          Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
-          
-          varNames.insert({toSelect(outSel), nextVar});
-          nextVar++;
-        } else {
-          assert(false);
-        }
-
-        cout << "Done instance" << endl;
-      }
-    }
+    CharBufLayout cl(layout);
+    str +=
+      printSimFunctionBody(topoOrder, gr, *m, 0, cl);
 
     str += "\n}\n";
+
+    // int nextVar = 0;
+    // map<Select*, int> varNames;
+
+    // for (auto& nd : topoOrder) {
+    //   WireNode wd = gr.getNode(nd);
+
+    //   if (isGraphInput(wd)) {
+    //     Select* sel = toSelect(wd.getWire());
+    //     varNames.insert({sel, nextVar});
+
+    //     string vName = "tmp_" + to_string(nextVar);
+    //     str += "uint16_t " + vName + " = *((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "));\n";
+
+    //     nextVar++;
+    //   } else if (isGraphOutput(wd)) {
+
+    //     Select* sel = toSelect(wd.getWire());
+    //     auto inConns = getInputConnections(nd, gr);
+
+    //     assert(inConns.size() == 1);
+
+    //     InstanceValue arg1 = inConns[0].first;
+    //     str += "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + ")) = tmp_" + to_string(varNames[arg1.getWire()]) + ";\n";
+      
+    //   } else {
+
+    //     Instance* inst = toInstance(wd.getWire());
+
+    //     cout << "Instance " << inst->toString() << " : " << getQualifiedOpName(*inst) << endl;
+    //     auto inConns = getInputConnections(nd, gr);
+
+    //     if (inConns.size() == 2) {
+
+    //       auto outSelects = getOutputSelects(inst);
+
+    //       assert(outSelects.size() == 1);
+
+    //       string operand0 =
+    //         "tmp_" + to_string(varNames[inConns[0].first.getWire()]);
+    //       string operand1 =
+    //         "tmp_" + to_string(varNames[inConns[1].first.getWire()]);
+
+    //       string vName = "tmp_" + to_string(nextVar);
+
+    //       Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+    //       varNames.insert({toSelect(outSel), nextVar});
+
+    //       str += "uint16_t " + vName + " = " + operand0 + " + " + operand1 + ";\n";
+
+    //       nextVar++;
+    //     } else if (inConns.size() == 0) {
+
+    //       assert(getQualifiedOpName(*inst) == "coreir.const");
+
+    //       bool foundValue = false;
+          
+    //       string argStr = "";
+    //       for (auto& arg : inst->getModArgs()) {
+    //         if (arg.first == "value") {
+    //           foundValue = true;
+    //           Value* valArg = arg.second;
+
+    //           cout << "Value type = " << valArg->getValueType()->toString() << endl;
+
+    //           BitVector bv = valArg->get<BitVector>();
+    //           stringstream ss;
+    //           ss << "0b" << bv;
+    //           argStr = ss.str();
+    //         }
+    //       }
+
+    //       assert(foundValue);
+
+    //       auto outSelects = getOutputSelects(inst);
+
+    //       assert(outSelects.size() == 1);
+
+    //       string vName = "tmp_" + to_string(nextVar);
+
+    //       cout << "Created temps" << endl;
+
+    //       Wireable* outSel = findSelect("out", outSelects); //outSelects[0];
+          
+    //       varNames.insert({toSelect(outSel), nextVar});
+    //       nextVar++;
+    //     } else {
+    //       assert(false);
+    //     }
+
+    //     cout << "Done instance" << endl;
+    //   }
+    // }
+
+    // str += "\n}\n";
     
     return str;
   }
@@ -251,10 +286,10 @@ namespace CoreJIT {
   }
 
   JITInfo buildSimLib(CoreIR::Module* m,
-                      const CoreIR::NGraph& gr) {
+                      CoreIR::NGraph& gr) {
     MemLayout layout = buildLayout(gr);
 
-    string cppCode = libCode(gr, layout);
+    string cppCode = libCode(m, gr, layout);
 
     string targetBinary = "./libprog.dylib";
     string cppName = "./prog.cpp";
