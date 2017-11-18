@@ -6,6 +6,8 @@
 
 namespace CoreJIT {
 
+  int bufferTypeWidth(CoreIR::Type& tp);
+
   struct MemLayout {
   protected:
 
@@ -19,7 +21,7 @@ namespace CoreJIT {
       int len = 0;
 
       for (auto& elem : offsets) {
-        len += containerTypeWidth(*(elem.first->getType())) / 8;
+        len += bufferTypeWidth(*(elem.first->getType()));
       }
       
       return len;

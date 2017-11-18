@@ -91,12 +91,16 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   NGraph gr;
   buildOrderedGraph(m, gr);
 
-  // JITInfo simLib = buildSimLib(m, gr);
-  // MemLayout& layout = simLib.layout;
+  SECTION("DesignTop requires more than 16 + 16 + 8 + 8 bits to store") {
+    MemLayout layout = buildLayout(gr);
 
-  // SECTION("DesignTop requires 16 + 16 + 8 = 40 bits of inputs") {
-  //   REQUIRE(layout.byteLength() == 5);
-  // }
+    int bl = layout.byteLength();
+
+    REQUIRE(layout.byteLength() > 6);
+  }
+
+  JITInfo simLib = buildSimLib(m, gr);
+  MemLayout& layout = simLib.layout;
 
   deleteContext(c);
   
