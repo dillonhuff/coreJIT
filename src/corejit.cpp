@@ -15,11 +15,17 @@ namespace CoreJIT {
     CharBufLayout(const MemLayout& layout_) : layout(layout_) {}
 
     std::string lastClkVarName(InstanceValue& clk) const {
-      assert(false);
+      Select* sel = toSelect(clk.getWire());
+
+      string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + " + 1))";
+      return str;
     }
 
     std::string clkVarName(InstanceValue& clk) const {
-      assert(false);
+      Select* sel = toSelect(clk.getWire());
+      string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+      return str;
     }
 
     std::string outputVarName(CoreIR::Wireable& outSel) const {
@@ -30,7 +36,12 @@ namespace CoreJIT {
       }
 
       if (isMemoryInstance(&outSel)) {
-        assert(false);
+        Instance* inst = toInstance(&outSel);
+        Select* sel = inst->sel("wdata");
+
+        string str = "((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+        return str;
       }
 
       Select* sel = toSelect(&outSel);
@@ -73,7 +84,11 @@ namespace CoreJIT {
                  NGraph& gr,
                  const MemLayout& layout) {
     string str =
-      "#include <stdint.h>\n"
+      "#include <stdint.h>\n";
+
+    str += seMacroDef() + "\n" + maskMacroDef();
+
+    str +=
       "void simulate(unsigned char* state) {\n";
 
     auto topoOrder = topologicalSort(gr);
