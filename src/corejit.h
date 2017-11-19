@@ -27,6 +27,14 @@ namespace CoreJIT {
       return offsets.find(sel)->second;
     }
 
+    int clkOffset(CoreIR::Select* sel) const {
+      return offsets.find(sel)->second;
+    }
+
+    int lastClkOffset(CoreIR::Select* sel) const {
+      return (offsets.find(sel)->second) + 1;
+    }
+    
     int byteLength() const {
       return byteLen;
     }
@@ -57,6 +65,20 @@ namespace CoreJIT {
                  const MemLayout& layout,
                  unsigned char* buffer);
 
+  uint16_t getUint16(CoreIR::Select* target,
+                     const MemLayout& layout,
+                     unsigned char* buffer);
+
+  void setClk(const uint8_t value,
+              CoreIR::Select* target,
+              const MemLayout& layout,
+              unsigned char* buffer);
+
+  void setClkLast(const uint8_t value,
+                  CoreIR::Select* target,
+                  const MemLayout& layout,
+                  unsigned char* buffer);
+  
   JITInfo buildSimLib(CoreIR::Module* m,
                       CoreIR::NGraph& gr);
 

@@ -110,8 +110,29 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     JITInfo simLib = buildSimLib(m, gr);
     MemLayout& layout = simLib.layout;
 
+    ModuleDef* def = m->getDef();
     
+    void (*simFunc)(unsigned char*) =
+      reinterpret_cast<void (*)(unsigned char*)>(simLib.libInfo.simFuncHandle);
+    
+    unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
+    setUint16(1, def->sel("self")->sel("in_0"), layout, buf);
+    setClk(1, def->sel("self")->sel("clk"), layout, buf);
+    setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
+    
+    simFunc(buf);
+    simFunc(buf);
+    simFunc(buf);
+    simFunc(buf);
 
+    //cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
+
+    //REQUIRE(*((uint16_t*)(buf + 8)) == 4);
+
+    REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 1);
+
+    free(buf);
+    
     dlclose(simLib.libInfo.libHandle);
   }
 

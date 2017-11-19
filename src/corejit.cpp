@@ -17,7 +17,7 @@ namespace CoreJIT {
     std::string lastClkVarName(InstanceValue& clk) const {
       Select* sel = toSelect(clk.getWire());
 
-      string str = "*((uint8_t*)(state + " + to_string(layout.offset(sel)) + " + 1))";
+      string str = "*((uint8_t*)(state + " + to_string(layout.lastClkOffset(sel)) + "))";
       return str;
     }
 
@@ -108,6 +108,13 @@ namespace CoreJIT {
     return str;
   }
 
+  uint16_t getUint16(CoreIR::Select* target,
+                     const MemLayout& layout,
+                     unsigned char* buffer) {
+    int offset = layout.offset(target);
+    return *((uint16_t*) (buffer + offset));
+  }
+  
   void setUint16(const uint16_t value,
                  CoreIR::Select* target,
                  const MemLayout& layout,
@@ -116,6 +123,22 @@ namespace CoreJIT {
     *((uint16_t*)(buffer + offset)) = value;
   }
 
+  void setClk(const uint8_t value,
+              CoreIR::Select* target,
+              const MemLayout& layout,
+              unsigned char* buffer) {
+    int offset = layout.clkOffset(target);
+    *((uint8_t*)(buffer + offset)) = value;
+  }
+
+  void setClkLast(const uint8_t value,
+                  CoreIR::Select* target,
+                  const MemLayout& layout,
+                  unsigned char* buffer) {
+    int offset = layout.lastClkOffset(target);
+    *((uint8_t*)(buffer + offset)) = value;
+  }
+  
   DylibInfo loadLibWithFunc(const std::string& targetBinary) {
     void* myLibHandle = dlopen(targetBinary.c_str(), RTLD_LOCAL);
 
