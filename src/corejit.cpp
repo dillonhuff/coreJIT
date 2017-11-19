@@ -45,7 +45,10 @@ namespace CoreJIT {
       }
 
       Select* sel = toSelect(&outSel);
-      string str = "*((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+      string cTypeName = unSignedCTypeString(*(sel->getType())); //"uint16_t";
+
+      string str = "*((" + cTypeName + "*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
 
       return str;
     }
