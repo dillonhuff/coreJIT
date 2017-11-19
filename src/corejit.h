@@ -19,6 +19,14 @@ namespace CoreJIT {
 
     std::map<CoreIR::Select*, int> offsets;
 
+    void setOffset(CoreIR::Select* sel, const int off) {
+      offsets.insert({sel, off});
+    }
+
+    int offset(CoreIR::Select* sel) const {
+      return offsets.find(sel)->second;
+    }
+
     int byteLength() const {
       return byteLen;
     }

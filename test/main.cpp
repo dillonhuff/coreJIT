@@ -109,6 +109,10 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   SECTION("Generating code for the actual JIT") {
     JITInfo simLib = buildSimLib(m, gr);
     MemLayout& layout = simLib.layout;
+
+    
+
+    dlclose(simLib.libInfo.libHandle);
   }
 
   deleteContext(c);

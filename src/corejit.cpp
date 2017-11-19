@@ -17,13 +17,16 @@ namespace CoreJIT {
     std::string lastClkVarName(InstanceValue& clk) const {
       Select* sel = toSelect(clk.getWire());
 
-      string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + " + 1))";
+      //string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + " + 1))";
+      string str = "*((uint8_t*)(state + " + to_string(layout.offset(sel)) + " + 1))";
       return str;
     }
 
     std::string clkVarName(InstanceValue& clk) const {
       Select* sel = toSelect(clk.getWire());
-      string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+      //string str = "*((uint8_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+      string str = "*((uint8_t*)(state + " + to_string(layout.offset(sel)) + "))";
 
       return str;
     }
@@ -39,16 +42,22 @@ namespace CoreJIT {
         Instance* inst = toInstance(&outSel);
         Select* sel = inst->sel("wdata");
 
-        string str = "((uint16_t*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+        string cTypeName = unSignedCTypeString(*(sel->getType()));
+
+        //string str = "((" + cTypeName + "*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+        string str = "((" + cTypeName + "*)(state + " + to_string(layout.offset(sel)) + "))";
 
         return str;
       }
 
       Select* sel = toSelect(&outSel);
 
-      string cTypeName = unSignedCTypeString(*(sel->getType())); //"uint16_t";
+      string cTypeName = unSignedCTypeString(*(sel->getType()));
 
-      string str = "*((" + cTypeName + "*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+      //string str = "*((" + cTypeName + "*)(state + " + to_string(layout.offsets.find(sel)->second) + "))";
+
+      string str = "*((" + cTypeName + "*)(state + " + to_string(layout.offset(sel)) + "))";
 
       return str;
     }
@@ -58,7 +67,7 @@ namespace CoreJIT {
     }
 
   };
-  
+
   vector<vdisc> allInputs(const NGraph& g) {
     vector<vdisc> inputs;
     for (auto& vd : g.getVerts()) {
@@ -109,7 +118,7 @@ namespace CoreJIT {
                  CoreIR::Select* target,
                  const MemLayout& layout,
                  unsigned char* buffer) {
-    int offset = layout.offsets.find(target)->second;
+    int offset = layout.offset(target); //layout.offsets.find(target)->second;
     *((uint16_t*)(buffer + offset)) = value;
   }
 
@@ -202,7 +211,8 @@ namespace CoreJIT {
       Select* sel =
         toSelect(gr.getNode(vd).getWire());
 
-      layout.offsets.insert({sel, off});
+      //layout.offsets.insert({sel, off});
+      layout.setOffset(sel, off);
 
       cout << "Select type = " << (sel->getType())->toString() << endl;
       off += bufferTypeWidth(*(sel->getType())); 
@@ -214,7 +224,8 @@ namespace CoreJIT {
       Select* sel =
         toSelect(gr.getNode(vd).getWire());
 
-      layout.offsets.insert({sel, off});
+      //layout.offsets.insert({sel, off});
+      layout.setOffset(sel, off);
 
       off += bufferTypeWidth(*(sel->getType()));
       cout << "offset = " << off << endl;
@@ -227,7 +238,9 @@ namespace CoreJIT {
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         Instance* inst = toInstance(wd.getWire());
         Select* outSel = inst->sel("out");
-        layout.offsets.insert({outSel, off});
+
+        //layout.offsets.insert({outSel, off});
+        layout.setOffset(outSel, off);
 
         off += bufferTypeWidth(*(outSel->getType()));
         cout << "register offset = " << off << endl;
@@ -247,7 +260,8 @@ namespace CoreJIT {
         
         // Key memory off of wdata
         Select* outSel = inst->sel("wdata");
-        layout.offsets.insert({outSel, off});
+        //layout.offsets.insert({outSel, off});
+        layout.setOffset(outSel, off);
 
         off += (width / 8)*depth;
         cout << "memory offset = " << off << endl;
