@@ -138,13 +138,6 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
 
       cout << "out = " << getUint16(def->sel("self")->sel("out"), layout, buf) << endl;
     }
-    // simFunc(buf);
-    // simFunc(buf);
-    // simFunc(buf);
-
-    //cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
-
-    //REQUIRE(*((uint16_t*)(buf + 8)) == 4);
 
     REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 15);
 
