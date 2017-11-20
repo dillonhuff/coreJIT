@@ -117,11 +117,11 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     string targetBinary = "./lib" + libName + ".dylib";
     int ret =
       system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+
+    assert(ret == 0);
     
     MemLayout layout = buildLayout(gr);
     DylibInfo libInfo = loadLibWithFunc(targetBinary);
-
-    
 
     ModuleDef* def = m->getDef();
 
@@ -129,9 +129,17 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
       reinterpret_cast<void (*)(unsigned char*)>(libInfo.simFuncHandle);
     
     unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
+    memset(buf, 0, layout.byteLength());
+    
+    *((uint8_t*)(buf + 9)) = 0;
+    *((uint8_t*)(buf + 8)) = 1;
+    *((uint8_t*)(buf + 7)) = 0;
+    *((uint8_t*)(buf + 6)) = 1;
+
     setUint16(1, def->sel("self")->sel("in_0"), layout, buf);
     setClk(1, def->sel("self")->sel("clk"), layout, buf);
     setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
+    
 
     for (int i = 0; i < 40; i++) {
       simFunc(buf);
