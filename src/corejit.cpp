@@ -286,6 +286,14 @@ namespace CoreJIT {
     return layout;
   }
 
+  void compileCppLib(const std::string& cppName,
+                     const std::string& targetBinary) {
+    int ret =
+      system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+
+    assert(ret == 0);
+  }
+
   JITInfo buildSimLib(CoreIR::Module* m,
                       CoreIR::NGraph& gr,
                       const std::string& libName) {
@@ -297,10 +305,7 @@ namespace CoreJIT {
     string cppName = "./" + libName + ".cpp";
     ofstream out(cppName);
     out << cppCode << endl;
-    int ret =
-      system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
-
-    assert(ret == 0);
+    compileCppLib(cppName, targetBinary);
 
     DylibInfo dlib = loadLibWithFunc(targetBinary);
 
