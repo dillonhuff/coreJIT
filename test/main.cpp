@@ -130,10 +130,14 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     
     unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
     setUint16(1, def->sel("self")->sel("in_0"), layout, buf);
-    setClk(0, def->sel("self")->sel("clk"), layout, buf);
-    setClkLast(1, def->sel("self")->sel("clk"), layout, buf);
+    setClk(1, def->sel("self")->sel("clk"), layout, buf);
+    setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
 
-    simFunc(buf);
+    for (int i = 0; i < 40; i++) {
+      simFunc(buf);
+
+      cout << "out = " << getUint16(def->sel("self")->sel("out"), layout, buf) << endl;
+    }
     // simFunc(buf);
     // simFunc(buf);
     // simFunc(buf);
