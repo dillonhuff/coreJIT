@@ -287,13 +287,14 @@ namespace CoreJIT {
   }
 
   JITInfo buildSimLib(CoreIR::Module* m,
-                      CoreIR::NGraph& gr) {
+                      CoreIR::NGraph& gr,
+                      const std::string& libName) {
     MemLayout layout = buildLayout(gr);
 
     string cppCode = libCode(m, gr, layout);
 
-    string targetBinary = "./libprog.dylib";
-    string cppName = "./prog.cpp";
+    string targetBinary = "./lib" + libName + ".dylib";
+    string cppName = "./" + libName + ".cpp";
     ofstream out(cppName);
     out << cppCode << endl;
     int ret =

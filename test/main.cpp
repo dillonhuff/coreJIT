@@ -34,7 +34,7 @@ TEST_CASE("Dynamic code generation for add4") {
   NGraph gr;
   buildOrderedGraph(m, gr);
 
-  JITInfo simLib = buildSimLib(m, gr);
+  JITInfo simLib = buildSimLib(m, gr, "add4");
   MemLayout& layout = simLib.layout;
 
   SECTION("5 uint 16s take up 10 bytes of space") {
@@ -107,23 +107,36 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   }
 
   SECTION("Generating code for the actual JIT") {
-    JITInfo simLib = buildSimLib(m, gr);
-    MemLayout& layout = simLib.layout;
+    string libName = "conv_3_1";
+
+    // JITInfo simLib = buildSimLib(m, gr, libName);
+    // MemLayout& layout = simLib.layout;
+    // DylibInfo& libInfo = simLib.libInfo;
+
+    string cppName = "./" + libName + ".cpp";
+    string targetBinary = "./lib" + libName + ".dylib";
+    int ret =
+      system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+    
+    MemLayout layout = buildLayout(gr);
+    DylibInfo libInfo = loadLibWithFunc(targetBinary);
+
+    
 
     ModuleDef* def = m->getDef();
-    
+
     void (*simFunc)(unsigned char*) =
-      reinterpret_cast<void (*)(unsigned char*)>(simLib.libInfo.simFuncHandle);
+      reinterpret_cast<void (*)(unsigned char*)>(libInfo.simFuncHandle);
     
     unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
     setUint16(1, def->sel("self")->sel("in_0"), layout, buf);
-    setClk(1, def->sel("self")->sel("clk"), layout, buf);
-    setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
-    
+    setClk(0, def->sel("self")->sel("clk"), layout, buf);
+    setClkLast(1, def->sel("self")->sel("clk"), layout, buf);
+
     simFunc(buf);
-    simFunc(buf);
-    simFunc(buf);
-    simFunc(buf);
+    // simFunc(buf);
+    // simFunc(buf);
+    // simFunc(buf);
 
     //cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
 
@@ -133,7 +146,7 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
 
     free(buf);
     
-    dlclose(simLib.libInfo.libHandle);
+    dlclose(libInfo.libHandle);
   }
 
   deleteContext(c);

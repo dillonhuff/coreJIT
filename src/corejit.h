@@ -80,7 +80,8 @@ namespace CoreJIT {
                   unsigned char* buffer);
   
   JITInfo buildSimLib(CoreIR::Module* m,
-                      CoreIR::NGraph& gr);
+                      CoreIR::NGraph& gr,
+                      const std::string& cppName);
 
   DylibInfo loadLibWithFunc(const std::string& targetBinary);  
 
