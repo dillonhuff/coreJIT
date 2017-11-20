@@ -146,7 +146,7 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
 
     //REQUIRE(*((uint16_t*)(buf + 8)) == 4);
 
-    REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 1);
+    REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 15);
 
     free(buf);
     
