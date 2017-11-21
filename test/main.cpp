@@ -123,13 +123,13 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     int lastClk = 0;
     int nextClk = 1;
 
-    interp.setClk("self.clk", lastClk, nextClk);
+    interp.setClock("self.clk", lastClk, nextClk);
     interp.setValue("self.in_0", BitVec(16, val));
 
     for (int i = 0; i < 41; i++) {
       nextClk = i % 2;
 
-      interp.setClk("self.clk", lastClk, nextClk);
+      interp.setClock("self.clk", lastClk, nextClk);
 
       interp.execute();
 

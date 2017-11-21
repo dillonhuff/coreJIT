@@ -136,7 +136,7 @@ namespace CoreJIT {
       return instIter->second;
     }
 
-    void setClk(const std::string& clkName, const int last, const int next) {
+    void setClock(const std::string& clkName, const int last, const int next) {
       auto sel = findSelect(clkName);
       CoreJIT::setClkLast(last, sel, info.layout, buf);
       CoreJIT::setClk(next, sel, info.layout, buf);
