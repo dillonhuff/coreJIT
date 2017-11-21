@@ -35,7 +35,16 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   MixedInterpreter interp(m);
 
+  cout << "About to call execute()" << endl;
+
+  interp.execute();
+  interp.execute();
+
+  cout << "Sleeping" << endl;
+
   sleep(5);
+
+  interp.execute();
   // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
   //                    BitVec(8, 1));
   // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",

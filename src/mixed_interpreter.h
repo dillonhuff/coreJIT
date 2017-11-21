@@ -19,6 +19,16 @@ namespace CoreJIT {
 
     bool isJITCreated() const { return createdInterp; }
 
+    void execute() {
+      std::cout << "Calling execute" << std::endl;
+
+      if (isJITCreated()) {
+        std::cout << "Created JIT!" << std::endl;
+      } else {
+        std::cout << "No JIT yet!" << std::endl;
+      }
+    }
+
     ~MixedInterpreter() {
       delete jitInterp;
     }
