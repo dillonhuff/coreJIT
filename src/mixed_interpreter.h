@@ -22,6 +22,7 @@ namespace CoreJIT {
     void execute() {
       std::cout << "Calling execute" << std::endl;
 
+      state.execute();
       if (isJITCreated()) {
         std::cout << "Created JIT!" << std::endl;
       } else {
@@ -29,6 +30,25 @@ namespace CoreJIT {
       }
     }
 
+    void setRegister(const std::string& name,
+                     const CoreIR::BitVec& bv) {
+      state.setRegister(name, bv);
+    }
+
+    void setClock(const std::string& name,
+                  const unsigned char clkLast,
+                  const unsigned char clk) {
+      state.setClock(name, clkLast, clk);
+    }
+
+    void setValue(const std::string& name, const CoreIR::BitVec& bv) {
+      state.setValue(name, bv);
+    }
+
+    CoreIR::BitVec getBitVec(const std::string& name) {
+      return state.getBitVec(name);
+    }
+    
     ~MixedInterpreter() {
       delete jitInterp;
     }

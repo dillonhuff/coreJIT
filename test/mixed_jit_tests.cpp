@@ -35,56 +35,50 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   MixedInterpreter interp(m);
 
-  cout << "About to call execute()" << endl;
-
-  interp.execute();
-  interp.execute();
-
   cout << "Sleeping" << endl;
 
   sleep(2);
 
-  interp.execute();
-  // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
-  //                    BitVec(8, 1));
-  // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
-  //                    BitVec(8, 0));
-  // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
-  //                    BitVec(8, 1));
-  // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
-  //                    BitVec(8, 0));
+  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
+                     BitVec(8, 1));
+  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
+                     BitVec(8, 0));
+  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
+                     BitVec(8, 1));
+  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
+                     BitVec(8, 0));
 
-  // int val = 1;
+  int val = 1;
 
-  // int lastClk = 0;
-  // int nextClk = 1;
+  int lastClk = 0;
+  int nextClk = 1;
 
-  // interp.setClock("self.clk", lastClk, nextClk);
-  // interp.setValue("self.in_0", BitVec(16, val));
+  interp.setClock("self.clk", lastClk, nextClk);
+  interp.setValue("self.in_0", BitVec(16, val));
 
-  // for (int i = 0; i < 41; i++) {
-  //   nextClk = i % 2;
+  for (int i = 0; i < 41; i++) {
+    nextClk = i % 2;
 
-  //   interp.setClock("self.clk", lastClk, nextClk);
+    interp.setClock("self.clk", lastClk, nextClk);
 
-  //   interp.execute();
+    interp.execute();
 
-  //   if ((i % 2) == 0) {
-  //     cout << "Output " << i << " = " <<
-  //       interp.getBitVec("self.out").to_type<uint16_t>() << endl;
-  //   }
+    if ((i % 2) == 0) {
+      cout << "Output " << i << " = " <<
+        interp.getBitVec("self.out").to_type<uint16_t>() << endl;
+    }
 
-  //   if ((i % 2) == 1) {
-  //     val = val + 1;
+    if ((i % 2) == 1) {
+      val = val + 1;
 
-  //     interp.setValue("self.in_0", BitVec(16, val));
-  //   }
+      interp.setValue("self.in_0", BitVec(16, val));
+    }
 
-  //   lastClk = nextClk;
+    lastClk = nextClk;
 
-  // }
+  }
 
-  // REQUIRE(interp.getBitVec("self.out") == BitVec(16, 205));
+  REQUIRE(interp.getBitVec("self.out") == BitVec(16, 205));
   
 
   deleteContext(c);
