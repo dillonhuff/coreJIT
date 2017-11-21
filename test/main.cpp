@@ -136,15 +136,15 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     *((uint8_t*)(buf + 7)) = 0;
     *((uint8_t*)(buf + 6)) = 1;
 
-    setUint16(1, def->sel("self")->sel("in_0"), layout, buf);
+    int val = 1;
+    
     setClk(1, def->sel("self")->sel("clk"), layout, buf);
     setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
     
 
     for (int i = 0; i < 40; i++) {
+      setUint16(val, def->sel("self")->sel("in_0"), layout, buf);  
       simFunc(buf);
-
-      cout << "out = " << getUint16(def->sel("self")->sel("out"), layout, buf) << endl;
     }
 
     REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 15);
