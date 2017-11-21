@@ -176,36 +176,6 @@ namespace CoreJIT {
     return {myLibHandle, myFuncFunV};
   }
 
-  int loadLibAndRun(const std::string& targetBinary,
-                    const MemLayout& layout,
-                    const NGraph& gr) {
-
-    DylibInfo dlib = loadLibWithFunc(targetBinary);
-
-    void (*simFunc)(unsigned char*) =
-      reinterpret_cast<void (*)(unsigned char*)>(dlib.simFuncHandle);
-
-    unsigned char* buf = (unsigned char*) malloc(16*5);
-
-    vector<vdisc> ins = allInputs(gr);
-    int value = 2;
-    for (auto& in : ins) {
-      Select* sel = toSelect(gr.getNode(in).getWire());
-      setUint16(value, sel, layout, buf);
-      value += 3;
-    }
-
-    simFunc(buf);
-
-    cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
-
-    free(buf);
-
-    dlclose(dlib.libHandle);
-
-    return 0;
-  }
-
   int bufferTypeWidth(CoreIR::Type& tp) {
     cout << "Getting width for " << tp.toString() << endl;
 

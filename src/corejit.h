@@ -96,10 +96,6 @@ namespace CoreJIT {
 
   MemLayout buildLayout(const CoreIR::NGraph& gr);
 
-  int loadLibAndRun(const std::string& targetBinary,
-                    const MemLayout& layout,
-                    const CoreIR::NGraph& gr);
-
   std::string libCode(const CoreIR::NGraph& gr,
                       const MemLayout& layout);
 
