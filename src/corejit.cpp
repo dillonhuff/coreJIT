@@ -123,6 +123,21 @@ namespace CoreJIT {
     *((uint16_t*)(buffer + offset)) = value;
   }
 
+  uint8_t getUint8(CoreIR::Select* target,
+                     const MemLayout& layout,
+                     unsigned char* buffer) {
+    int offset = layout.offset(target);
+    return *((uint8_t*) (buffer + offset));
+  }
+  
+  void setUint8(const uint8_t value,
+                 CoreIR::Select* target,
+                 const MemLayout& layout,
+                 unsigned char* buffer) {
+    int offset = layout.offset(target);
+    *((uint8_t*)(buffer + offset)) = value;
+  }
+  
   void setClk(const uint8_t value,
               CoreIR::Select* target,
               const MemLayout& layout,

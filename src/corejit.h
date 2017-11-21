@@ -69,6 +69,15 @@ namespace CoreJIT {
                      const MemLayout& layout,
                      unsigned char* buffer);
 
+  void setUint8(const uint8_t value,
+                 CoreIR::Select* target,
+                 const MemLayout& layout,
+                 unsigned char* buffer);
+
+  uint8_t getUint8(CoreIR::Select* target,
+                   const MemLayout& layout,
+                   unsigned char* buffer);
+  
   void setClk(const uint8_t value,
               CoreIR::Select* target,
               const MemLayout& layout,
