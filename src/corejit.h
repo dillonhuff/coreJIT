@@ -99,4 +99,28 @@ namespace CoreJIT {
   std::string libCode(const CoreIR::NGraph& gr,
                       const MemLayout& layout);
 
+  class JITInterpreter {
+  protected:
+
+    CoreIR::Module* m;
+    CoreIR::NGraph& g;
+
+    JITInfo info;
+    unsigned char* buf;
+
+  public:
+
+    JITInterpreter(CoreIR::Module* m_,
+                   CoreIR::NGraph& g_) : m(m_), g(g_) {
+      info = buildSimLib(m, g, m->getName());
+      buf = static_cast<unsigned char*>(malloc(info.layout.byteLength()));
+    }
+
+    ~JITInterpreter() {
+      dlclose(info.libInfo.libHandle);
+      free(buf);
+    }
+  };
+
+  
 }

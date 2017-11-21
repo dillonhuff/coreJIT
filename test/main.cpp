@@ -149,7 +149,8 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
       simFunc(buf);
 
       if ((i % 2) == 0) {
-        cout << "Output " << i << " = " << getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) << endl;
+        cout << "Output " << i << " = " <<
+          getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) << endl;
       }
 
       if ((i % 2) == 1) {
@@ -164,7 +165,7 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 205);
 
     free(buf);
-    
+
     dlclose(libInfo.libHandle);
   }
 
