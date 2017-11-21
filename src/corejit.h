@@ -116,6 +116,44 @@ namespace CoreJIT {
       buf = static_cast<unsigned char*>(malloc(info.layout.byteLength()));
     }
 
+    CoreIR::Select* findSelect(const std::string& name) const {
+      CoreIR::ModuleDef* def = m->getDef();
+      CoreIR::Wireable* w = def->sel(name);
+      CoreIR::Select* s = toSelect(w);
+
+      return s;
+    }
+    
+    void setValue(const std::string& sel,
+                  const CoreIR::BitVec& bv) {
+      auto s = findSelect(sel);
+      setValue(s, bv);
+    }
+
+    void setValue(CoreIR::Select* const sel,
+                  const CoreIR::BitVec& bv) {
+      // Only supports length 16 for now
+      assert(bv.bitLength() == 16);
+
+      setUint16(bv.to_type<uint16_t>(), sel, info.layout, buf);
+    }
+    
+    CoreIR::BitVec getBitVec(const std::string& sel) const {
+      auto s = findSelect(sel);
+      return getBitVec(s);
+    }
+
+    CoreIR::BitVec getBitVec(CoreIR::Select* const sel) const {
+      return CoreIR::BitVec(16, getUint16(sel, info.layout, buf));
+    }
+    
+    void execute() {
+      void (*simFunc)(unsigned char*) =
+        reinterpret_cast<void (*)(unsigned char*)>(info.libInfo.simFuncHandle);
+
+      simFunc(buf);
+    }
+
     ~JITInterpreter() {
       dlclose(info.libInfo.libHandle);
       free(buf);

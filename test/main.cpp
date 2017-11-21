@@ -42,31 +42,19 @@ TEST_CASE("Dynamic code generation for add4") {
   }
 
   SECTION("Execution of simulate produces expected result") {
-    DylibInfo& dlib = simLib.libInfo;
 
-    void (*simFunc)(unsigned char*) =
-      reinterpret_cast<void (*)(unsigned char*)>(dlib.simFuncHandle);
+    JITInterpreter interp(m, gr);
+    interp.setValue("self.in_0", BitVec(16, 1));
+    interp.setValue("self.in_1", BitVec(16, 1));
+    interp.setValue("self.in_2", BitVec(16, 1));
+    interp.setValue("self.in_3", BitVec(16, 1));
 
-    unsigned char* buf = (unsigned char*) malloc(16*5);
+    interp.execute();
 
-    vector<vdisc> ins = allInputs(gr);
-    int value = 1;
-    for (auto& in : ins) {
-      Select* sel = toSelect(gr.getNode(in).getWire());
-      setUint16(value, sel, layout, buf);
-    }
+    REQUIRE(interp.getBitVec("self.out") == BitVec(16, 4));
 
-    simFunc(buf);
-
-    cout << "Final buffer result = " << *((uint16_t*)(buf + 8)) << endl;
-
-    REQUIRE(*((uint16_t*)(buf + 8)) == 4);
-
-    free(buf);
-
-    dlclose(dlib.libHandle);
   }
-  
+
   deleteContext(c);
 
 }
@@ -127,10 +115,10 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
 
     void (*simFunc)(unsigned char*) =
       reinterpret_cast<void (*)(unsigned char*)>(libInfo.simFuncHandle);
-    
+
     unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
     memset(buf, 0, layout.byteLength());
-    
+
     *((uint8_t*)(buf + 9)) = 0;
     *((uint8_t*)(buf + 8)) = 1;
     *((uint8_t*)(buf + 7)) = 0;
@@ -140,7 +128,7 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
     
     setClk(1, def->sel("self")->sel("clk"), layout, buf);
     setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
-    setUint16(val, def->sel("self")->sel("in_0"), layout, buf);    
+    setUint16(val, def->sel("self")->sel("in_0"), layout, buf);
 
     for (int i = 0; i < 41; i++) {
 
