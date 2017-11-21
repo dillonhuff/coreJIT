@@ -7,3 +7,8 @@ CMakeCache.txt
 CMakeFiles/
 all-tests
 cmake_install.cmake
+*.dylib
+all-tests.dSYM/
+DesignTop.cpp
+add4.cpp
+manual_conv_3_1.cpp
