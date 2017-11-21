@@ -37,21 +37,37 @@ namespace CoreJIT {
 
     void setRegister(const std::string& name,
                      const CoreIR::BitVec& bv) {
-      state.setRegister(name, bv);
+      if (isJITCreated()) {
+        jitInterp->setRegister(name, bv);
+      } else {
+        state.setRegister(name, bv);
+      }
     }
 
     void setClock(const std::string& name,
                   const unsigned char clkLast,
                   const unsigned char clk) {
-      state.setClock(name, clkLast, clk);
+      if (isJITCreated()) {
+        jitInterp->setClock(name, clkLast, clk);
+      } else {
+        state.setClock(name, clkLast, clk);
+      }
     }
 
     void setValue(const std::string& name, const CoreIR::BitVec& bv) {
-      state.setValue(name, bv);
+      if (isJITCreated()) {
+        jitInterp->setValue(name, bv);
+      } else {
+        state.setValue(name, bv);
+      }
     }
 
     CoreIR::BitVec getBitVec(const std::string& name) {
-      return state.getBitVec(name);
+      if (isJITCreated()) {
+        return jitInterp->getBitVec(name);
+      } else {
+        return state.getBitVec(name);
+      }
     }
     
     ~MixedInterpreter() {

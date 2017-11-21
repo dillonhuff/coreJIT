@@ -35,6 +35,8 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   MixedInterpreter state(m);
 
+  sleep(1);
+
   BitVector one(16, "1");
   BitVector zero(16, "0");
   BitVector inVal = one;
