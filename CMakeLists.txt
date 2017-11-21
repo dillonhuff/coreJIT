@@ -13,8 +13,10 @@ SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${CXX_OCL_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(./src/)
 
-SET(SRC_FILES ./src/corejit.cpp)
+SET(SRC_FILES ./src/corejit.cpp
+              ./src/mixed_interpreter.cpp)
 
-SET(TEST_FILES ./test/main.cpp)
+SET(TEST_FILES ./test/main.cpp
+               ./test/mixed_jit_tests.cpp)
 
 add_executable(all-tests ${TEST_FILES} ${SRC_FILES})

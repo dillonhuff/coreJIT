@@ -95,28 +95,16 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   }
 
   SECTION("Generating code for the actual JIT") {
-    //string libName = "conv_3_1";
-
     JITInterpreter interp(m, gr);
 
-    // JITInfo simLib = buildSimLib(m, gr, libName);
-    // MemLayout& layout = simLib.layout;
-    // DylibInfo& libInfo = simLib.libInfo;
-
-    // // string cppName = "./" + libName + ".cpp";
-    // // string targetBinary = "./lib" + libName + ".dylib";
-    // // int ret =
-    // //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
-
-    // // assert(ret == 0);
-    
-    // // MemLayout layout = buildLayout(gr);
-    // // DylibInfo libInfo = loadLibWithFunc(targetBinary);
-
-    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0", BitVec(8, 1));
-    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0", BitVec(8, 0));
-    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0", BitVec(8, 1));
-    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0", BitVec(8, 0));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
+                       BitVec(8, 1));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
+                       BitVec(8, 0));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
+                       BitVec(8, 1));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
+                       BitVec(8, 0));
 
     int val = 1;
 
@@ -147,8 +135,6 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
       lastClk = nextClk;
 
     }
-
-
 
     REQUIRE(interp.getBitVec("self.out") == BitVec(16, 205));
 

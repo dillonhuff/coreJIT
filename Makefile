@@ -150,6 +150,33 @@ src/corejit.cpp.s:
 	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/corejit.cpp.s
 .PHONY : src/corejit.cpp.s
 
+src/mixed_interpreter.o: src/mixed_interpreter.cpp.o
+
+.PHONY : src/mixed_interpreter.o
+
+# target to build an object file
+src/mixed_interpreter.cpp.o:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/mixed_interpreter.cpp.o
+.PHONY : src/mixed_interpreter.cpp.o
+
+src/mixed_interpreter.i: src/mixed_interpreter.cpp.i
+
+.PHONY : src/mixed_interpreter.i
+
+# target to preprocess a source file
+src/mixed_interpreter.cpp.i:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/mixed_interpreter.cpp.i
+.PHONY : src/mixed_interpreter.cpp.i
+
+src/mixed_interpreter.s: src/mixed_interpreter.cpp.s
+
+.PHONY : src/mixed_interpreter.s
+
+# target to generate assembly for a file
+src/mixed_interpreter.cpp.s:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/src/mixed_interpreter.cpp.s
+.PHONY : src/mixed_interpreter.cpp.s
+
 test/main.o: test/main.cpp.o
 
 .PHONY : test/main.o
@@ -177,6 +204,33 @@ test/main.cpp.s:
 	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/test/main.cpp.s
 .PHONY : test/main.cpp.s
 
+test/mixed_jit_tests.o: test/mixed_jit_tests.cpp.o
+
+.PHONY : test/mixed_jit_tests.o
+
+# target to build an object file
+test/mixed_jit_tests.cpp.o:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/test/mixed_jit_tests.cpp.o
+.PHONY : test/mixed_jit_tests.cpp.o
+
+test/mixed_jit_tests.i: test/mixed_jit_tests.cpp.i
+
+.PHONY : test/mixed_jit_tests.i
+
+# target to preprocess a source file
+test/mixed_jit_tests.cpp.i:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/test/mixed_jit_tests.cpp.i
+.PHONY : test/mixed_jit_tests.cpp.i
+
+test/mixed_jit_tests.s: test/mixed_jit_tests.cpp.s
+
+.PHONY : test/mixed_jit_tests.s
+
+# target to generate assembly for a file
+test/mixed_jit_tests.cpp.s:
+	$(MAKE) -f CMakeFiles/all-tests.dir/build.make CMakeFiles/all-tests.dir/test/mixed_jit_tests.cpp.s
+.PHONY : test/mixed_jit_tests.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -189,9 +243,15 @@ help:
 	@echo "... src/corejit.o"
 	@echo "... src/corejit.i"
 	@echo "... src/corejit.s"
+	@echo "... src/mixed_interpreter.o"
+	@echo "... src/mixed_interpreter.i"
+	@echo "... src/mixed_interpreter.s"
 	@echo "... test/main.o"
 	@echo "... test/main.i"
 	@echo "... test/main.s"
+	@echo "... test/mixed_jit_tests.o"
+	@echo "... test/mixed_jit_tests.i"
+	@echo "... test/mixed_jit_tests.s"
 .PHONY : help
 
 
