@@ -42,7 +42,7 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   cout << "Sleeping" << endl;
 
-  sleep(5);
+  sleep(2);
 
   interp.execute();
   // interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
