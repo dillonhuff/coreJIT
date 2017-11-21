@@ -15,7 +15,7 @@ namespace CoreJIT {
     // destroyed before the thread finishes
     thread jitCompileThread([this, m]() {
         this->jitInterp = new JITInterpreter(m, this->state.getCircuitGraph());
-        this->createdInterp = true;
+        this->createdInterp = false;
       });
     jitCompileThread.detach();
 

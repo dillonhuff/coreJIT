@@ -292,4 +292,27 @@ namespace CoreJIT {
     return {layout, dlib};
   }
 
+  void JITInterpreter::setRegisterDefaults() {
+
+    for (auto& vd : g.getVerts()) {
+      WireNode wd = g.getNode(vd);
+
+      if (isRegisterInstance(wd.getWire())) {
+        Instance* inst = toInstance(wd.getWire());
+
+        Values args = inst->getModuleRef()->getGenArgs();
+
+        auto wArg = args["width"];
+
+        assert(wArg != nullptr);
+
+        uint width = (args["width"])->get<int>();
+
+        setRegister(inst->toString(), BitVec(width, 0));
+        
+      }
+    }
+
+  }
+  
 }

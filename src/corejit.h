@@ -117,6 +117,8 @@ namespace CoreJIT {
       memset(buf, 0, info.layout.byteLength());
     }
 
+    void setRegisterDefaults();
+
     CoreIR::Select* findSelect(const std::string& name) const {
       CoreIR::ModuleDef* def = m->getDef();
       CoreIR::Wireable* w = def->sel(name);
