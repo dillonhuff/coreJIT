@@ -177,7 +177,6 @@ namespace CoreJIT {
   }
 
   int bufferTypeWidth(CoreIR::Type& tp) {
-    cout << "Getting width for " << tp.toString() << endl;
 
     if (isPrimitiveType(tp)) {
       return containerTypeWidth(tp) / 8;
@@ -215,9 +214,8 @@ namespace CoreJIT {
 
       layout.setOffset(sel, off);
 
-      cout << "Select type = " << (sel->getType())->toString() << endl;
       off += bufferTypeWidth(*(sel->getType())); 
-      cout << "offset = " << off << endl;
+
     }
 
     // Add outputs to layout
@@ -228,7 +226,6 @@ namespace CoreJIT {
       layout.setOffset(sel, off);
 
       off += bufferTypeWidth(*(sel->getType()));
-      cout << "offset = " << off << endl;
     }
 
     // Add registers to layout
@@ -242,7 +239,6 @@ namespace CoreJIT {
         layout.setOffset(outSel, off);
 
         off += bufferTypeWidth(*(outSel->getType()));
-        cout << "register offset = " << off << endl;
       }
     }
 
@@ -262,7 +258,6 @@ namespace CoreJIT {
         layout.setOffset(outSel, off);
 
         off += (width / 8)*depth;
-        cout << "memory offset = " << off << endl;
       }
     }
 
