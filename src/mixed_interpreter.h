@@ -23,6 +23,7 @@ namespace CoreJIT {
       std::cout << "Calling execute" << std::endl;
 
       state.execute();
+
       if (isJITCreated()) {
         std::cout << "Created JIT!" << std::endl;
       } else {

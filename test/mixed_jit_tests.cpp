@@ -33,53 +33,43 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   REQUIRE(m != nullptr);
 
-  MixedInterpreter interp(m);
+  MixedInterpreter state(m);
 
-  cout << "Sleeping" << endl;
-
-  sleep(2);
-
-  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
-                     BitVec(8, 1));
-  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
-                     BitVec(8, 0));
-  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
-                     BitVec(8, 1));
-  interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
-                     BitVec(8, 0));
+  BitVector one(16, "1");
+  BitVector zero(16, "0");
+  BitVector inVal = one;
 
   int val = 1;
 
   int lastClk = 0;
   int nextClk = 1;
 
-  interp.setClock("self.clk", lastClk, nextClk);
-  interp.setValue("self.in_0", BitVec(16, val));
+  state.setClock("self.clk", lastClk, nextClk);
+  state.setValue("self.in_0", BitVec(16, val));
 
   for (int i = 0; i < 41; i++) {
     nextClk = i % 2;
 
-    interp.setClock("self.clk", lastClk, nextClk);
+    state.setClock("self.clk", lastClk, nextClk);
 
-    interp.execute();
+    state.execute();
 
     if ((i % 2) == 0) {
       cout << "Output " << i << " = " <<
-        interp.getBitVec("self.out").to_type<uint16_t>() << endl;
+        state.getBitVec("self.out").to_type<uint16_t>() << endl;
     }
 
     if ((i % 2) == 1) {
       val = val + 1;
 
-      interp.setValue("self.in_0", BitVec(16, val));
+      state.setValue("self.in_0", BitVec(16, val));
     }
 
     lastClk = nextClk;
 
   }
 
-  REQUIRE(interp.getBitVec("self.out") == BitVec(16, 205));
-  
+  REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
 
   deleteContext(c);
 }
