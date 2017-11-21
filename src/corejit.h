@@ -163,11 +163,11 @@ namespace CoreJIT {
 
     void setValue(CoreIR::Select* const sel,
                   const CoreIR::BitVec& bv) {
-      // Only supports length 16 for now
-      if (bv.bitLength() == 16) {
-        setUint16(bv.to_type<uint16_t>(), sel, info.layout, buf);
-      } else if (bv.bitLength() == 8) {
+
+      if (bv.bitLength() <= 8) {
         setUint8(bv.to_type<uint8_t>(), sel, info.layout, buf);
+      } else if (bv.bitLength() <= 16) {
+        setUint16(bv.to_type<uint16_t>(), sel, info.layout, buf);
       } else {
         std::cout << "Error: Setting " << sel->toString() << " to unsupported bit length " << bv << std::endl;
         assert(false);

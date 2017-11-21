@@ -10,6 +10,7 @@ namespace CoreJIT {
   protected:
     CoreIR::SimulatorState state;
     bool createdInterp;
+    bool firstJITExe;
 
     JITInterpreter* jitInterp;
 
@@ -19,11 +20,18 @@ namespace CoreJIT {
 
     bool isJITCreated() const { return createdInterp; }
 
+    void copyInterpState();
+
     void execute() {
       std::cout << "Calling execute" << std::endl;
 
       if (isJITCreated()) {
         std::cout << "Created JIT!" << std::endl;
+
+        if (firstJITExe) {
+          firstJITExe = false;
+          copyInterpState();
+        }
 
         jitInterp->execute();
       } else {

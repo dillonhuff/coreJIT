@@ -35,8 +35,6 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   MixedInterpreter state(m);
 
-  //sleep(1);
-
   BitVector one(16, "1");
   BitVector zero(16, "0");
   BitVector inVal = one;
@@ -46,17 +44,21 @@ TEST_CASE("Mixing interpreter and simulator") {
   int lastClk = 0;
   int nextClk = 1;
 
+  // state.setClock("self.clk", 0, 0);
+  // state.setValue("self.in_0", BitVec(16, val));
+  // state.execute();
+
   state.setClock("self.clk", lastClk, nextClk);
   state.setValue("self.in_0", BitVec(16, val));
 
-  state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
-                       BitVec(8, 1));
-  state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
-                       BitVec(8, 0));
-  state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
-                       BitVec(8, 1));
-  state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
-                       BitVec(8, 0));
+  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
+  //                      BitVec(8, 1));
+  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
+  //                      BitVec(8, 0));
+  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
+  //                      BitVec(8, 1));
+  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
+  //                      BitVec(8, 0));
   
   for (int i = 0; i < 41; i++) {
     nextClk = i % 2;
