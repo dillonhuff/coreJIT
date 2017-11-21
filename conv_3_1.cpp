@@ -1,10 +1,6 @@
 #include <stdint.h>
 #define SIGN_EXTEND(start, end, x) (((x) & ((1ULL << (start)) - 1)) | (((x) & (1ULL << ((start) - 1))) ? (((1ULL << ((end) - (start))) - 1) << (start)) : 0))
 
-#include <bitset>
-#include <iostream>
-
-using namespace std;
 
 #define MASK(width, expr) (((1ULL << (width)) - 1) & ((expr)))
 
@@ -57,7 +53,7 @@ uint16_t  add_340_351_352_out;
 
 // Simulation code
 
- // ----- Update outputs of sequential elements
+// ----- Update outputs of sequential elements
 lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0_out = *((uint8_t*)(state + 9));
 lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0_out = *((uint8_t*)(state + 8));
 lb_p4_clamped_stencil_update_stream$mem_2$mem_rdata = (((uint16_t*)(state + 30))[ *((uint8_t*)(state + 8)) ]);
@@ -95,21 +91,6 @@ lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0_out = *((uint8_t*)(state + 
 lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0_out = *((uint8_t*)(state + 6));
 lb_p4_clamped_stencil_update_stream$mem_1$mem_rdata = (((uint16_t*)(state + 10))[ *((uint8_t*)(state + 6)) ]);
 
-//cout << "*((uint8_t*)(state + 6)) = " << bitset<8>(*((uint8_t*)(state + 6))) << endl;
-
- //cout << "(((uint16_t*)(state + 10))[ *((uint8_t*)(state + 6)) ]) = " << (((uint16_t*)(state + 10))[ *((uint8_t*)(state + 6)) ]) << endl;
-
- cout << "*((uint8_t*)(state + 8)) = " << bitset<8>(*((uint8_t*)(state + 8))) << endl;
- cout << "(((uint16_t*)(state + 30))[ *((uint8_t*)(state + 8)) ]) = " << (((uint16_t*)(state + 30))[ *((uint8_t*)(state + 8)) ]) << endl;
- cout << "lb_p4_clamped_stencil_update_stream$mem_2$mem_rdata = " << lb_p4_clamped_stencil_update_stream$mem_2$mem_rdata << endl;
-
- for (int i = 0; i < 10; i++) {
-   cout << "mem " << i << " = " << bitset<16>(*(((uint16_t*)(state + 30 + i*2)))) << endl;
- }
-// lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0_out = *((uint8_t*)(state + 7));
-// lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0_out = *((uint8_t*)(state + 6));
-// lb_p4_clamped_stencil_update_stream$mem_1$mem_rdata = (((uint16_t*)(state + 10))[ *((uint8_t*)(state + 6)) ]);
- 
 // ----- Update combinational logic
 lb_p4_clamped_stencil_update_stream$mem_2$zero_const_out = 0b0000;
 lb_p4_clamped_stencil_update_stream$mem_2$max_const_out = 0b1010;

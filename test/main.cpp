@@ -109,19 +109,19 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   SECTION("Generating code for the actual JIT") {
     string libName = "conv_3_1";
 
-    // JITInfo simLib = buildSimLib(m, gr, libName);
-    // MemLayout& layout = simLib.layout;
-    // DylibInfo& libInfo = simLib.libInfo;
+    JITInfo simLib = buildSimLib(m, gr, libName);
+    MemLayout& layout = simLib.layout;
+    DylibInfo& libInfo = simLib.libInfo;
 
-    string cppName = "./" + libName + ".cpp";
-    string targetBinary = "./lib" + libName + ".dylib";
-    int ret =
-      system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+    // string cppName = "./" + libName + ".cpp";
+    // string targetBinary = "./lib" + libName + ".dylib";
+    // int ret =
+    //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
 
-    assert(ret == 0);
+    // assert(ret == 0);
     
-    MemLayout layout = buildLayout(gr);
-    DylibInfo libInfo = loadLibWithFunc(targetBinary);
+    // MemLayout layout = buildLayout(gr);
+    // DylibInfo libInfo = loadLibWithFunc(targetBinary);
 
     ModuleDef* def = m->getDef();
 
