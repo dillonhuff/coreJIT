@@ -22,12 +22,16 @@ namespace CoreJIT {
     void execute() {
       std::cout << "Calling execute" << std::endl;
 
-      state.execute();
+      //state.execute();
 
       if (isJITCreated()) {
         std::cout << "Created JIT!" << std::endl;
+
+        jitInterp->execute();
       } else {
         std::cout << "No JIT yet!" << std::endl;
+
+        state.execute();
       }
     }
 
