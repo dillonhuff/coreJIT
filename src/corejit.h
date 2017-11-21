@@ -114,6 +114,7 @@ namespace CoreJIT {
                    CoreIR::NGraph& g_) : m(m_), g(g_) {
       info = buildSimLib(m, g, m->getName());
       buf = static_cast<unsigned char*>(malloc(info.layout.byteLength()));
+      memset(buf, 0, info.layout.byteLength());
     }
 
     CoreIR::Select* findSelect(const std::string& name) const {
@@ -123,19 +124,57 @@ namespace CoreJIT {
 
       return s;
     }
+
+    CoreIR::Instance* findInstance(const std::string& name) const {
+      std::cout << "Searching for instance: " << name << std::endl;
+
+      CoreIR::ModuleDef* def = m->getDef();
+      auto instances = def->getInstances();
+
+      for (auto& inst : instances) {
+        std::cout << inst.first << std::endl;
+      }
+
+      auto instIter = instances.find(name);
+
+      assert(instIter != std::end(instances));
+      return instIter->second;
+    }
+
+    void setClk(const std::string& clkName, const int last, const int next) {
+      auto sel = findSelect(clkName);
+      CoreJIT::setClkLast(last, sel, info.layout, buf);
+      CoreJIT::setClk(next, sel, info.layout, buf);
+    }
+
+    void setRegister(const std::string& regName,
+                     const CoreIR::BitVec& bv) {
+      auto inst = findInstance(regName);
+      auto sel = inst->sel("out");
+      setValue(sel, bv);
+    }
+    
     
     void setValue(const std::string& sel,
                   const CoreIR::BitVec& bv) {
       auto s = findSelect(sel);
+
+      assert(s != nullptr);
+
       setValue(s, bv);
     }
 
     void setValue(CoreIR::Select* const sel,
                   const CoreIR::BitVec& bv) {
       // Only supports length 16 for now
-      assert(bv.bitLength() == 16);
-
-      setUint16(bv.to_type<uint16_t>(), sel, info.layout, buf);
+      if (bv.bitLength() == 16) {
+        setUint16(bv.to_type<uint16_t>(), sel, info.layout, buf);
+      } else if (bv.bitLength() == 8) {
+        setUint8(bv.to_type<uint8_t>(), sel, info.layout, buf);
+      } else {
+        std::cout << "Error: Setting " << sel->toString() << " to unsupported bit length " << bv << std::endl;
+        assert(false);
+      }
     }
     
     CoreIR::BitVec getBitVec(const std::string& sel) const {

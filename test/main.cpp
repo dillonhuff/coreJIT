@@ -95,66 +95,86 @@ TEST_CASE("Dynamic code generation for conv_3_1") {
   }
 
   SECTION("Generating code for the actual JIT") {
-    string libName = "conv_3_1";
+    //string libName = "conv_3_1";
 
-    JITInfo simLib = buildSimLib(m, gr, libName);
-    MemLayout& layout = simLib.layout;
-    DylibInfo& libInfo = simLib.libInfo;
+    JITInterpreter interp(m, gr);
 
-    // string cppName = "./" + libName + ".cpp";
-    // string targetBinary = "./lib" + libName + ".dylib";
-    // int ret =
-    //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+    // JITInfo simLib = buildSimLib(m, gr, libName);
+    // MemLayout& layout = simLib.layout;
+    // DylibInfo& libInfo = simLib.libInfo;
 
-    // assert(ret == 0);
+    // // string cppName = "./" + libName + ".cpp";
+    // // string targetBinary = "./lib" + libName + ".dylib";
+    // // int ret =
+    // //   system(("clang++ -std=c++11 -fPIC -dynamiclib " + cppName + " -o " + targetBinary).c_str());
+
+    // // assert(ret == 0);
     
-    // MemLayout layout = buildLayout(gr);
-    // DylibInfo libInfo = loadLibWithFunc(targetBinary);
+    // // MemLayout layout = buildLayout(gr);
+    // // DylibInfo libInfo = loadLibWithFunc(targetBinary);
 
-    ModuleDef* def = m->getDef();
+    // ModuleDef* def = m->getDef();
 
-    void (*simFunc)(unsigned char*) =
-      reinterpret_cast<void (*)(unsigned char*)>(libInfo.simFuncHandle);
+    // void (*simFunc)(unsigned char*) =
+    //   reinterpret_cast<void (*)(unsigned char*)>(libInfo.simFuncHandle);
 
-    unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
-    memset(buf, 0, layout.byteLength());
+    // unsigned char* buf = (unsigned char*) malloc(layout.byteLength());
+    // memset(buf, 0, layout.byteLength());
 
-    *((uint8_t*)(buf + 9)) = 0;
-    *((uint8_t*)(buf + 8)) = 1;
-    *((uint8_t*)(buf + 7)) = 0;
-    *((uint8_t*)(buf + 6)) = 1;
+    // *((uint8_t*)(buf + 9)) = 0;
+    // *((uint8_t*)(buf + 8)) = 1;
+    // *((uint8_t*)(buf + 7)) = 0;
+    // *((uint8_t*)(buf + 6)) = 1;
 
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0", BitVec(8, 1));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0", BitVec(8, 0));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0", BitVec(8, 1));
+    interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0", BitVec(8, 0));
+
+    //interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$add_r_out", BitVec(8, 1));
+    //interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$add_w_out", BitVec(8, 0));
+    //interp.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$add_r_out", BitVec(8, 1));
     int val = 1;
-    
-    setClk(1, def->sel("self")->sel("clk"), layout, buf);
-    setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
-    setUint16(val, def->sel("self")->sel("in_0"), layout, buf);
+
+    int lastClk = 0;
+    int nextClk = 1;
+
+    interp.setClk("self.clk", lastClk, nextClk);
+    interp.setValue("self.in_0", BitVec(16, val));
+
+    // setClk(1, def->sel("self")->sel("clk"), layout, buf);
+    // setClkLast(0, def->sel("self")->sel("clk"), layout, buf);
+    // setUint16(val, def->sel("self")->sel("in_0"), layout, buf);
 
     for (int i = 0; i < 41; i++) {
+      nextClk = i % 2;
 
-      setClk(i % 2, def->sel("self")->sel("clk"), layout, buf);
+      interp.setClk("self.clk", lastClk, nextClk);
+      //setClk(lastClk, nextClk, def->sel("self")->sel("clk"), layout, buf);
       
-      simFunc(buf);
+      //simFunc(buf);
+
+      interp.execute();
 
       if ((i % 2) == 0) {
         cout << "Output " << i << " = " <<
-          getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) << endl;
+          interp.getBitVec("self.out").to_type<uint16_t>() << endl;
       }
 
       if ((i % 2) == 1) {
         val = val + 1;
-        setUint16(val, def->sel("self")->sel("in_0"), layout, buf);
+        //setUint16(val, def->sel("self")->sel("in_0"), layout, buf);
+        interp.setValue("self.in_0", BitVec(16, val));
       }
 
-      setClkLast(i % 2, def->sel("self")->sel("clk"), layout, buf);
-
+      lastClk = nextClk;
+      //setClkLast(i % 2, def->sel("self")->sel("clk"), layout, buf);
     }
 
-    REQUIRE(getUint16(m->getDef()->sel("self")->sel("out"), layout, buf) == 205);
 
-    free(buf);
 
-    dlclose(libInfo.libHandle);
+    REQUIRE(interp.getBitVec("self.out") == BitVec(16, 205));
+
   }
 
   deleteContext(c);
