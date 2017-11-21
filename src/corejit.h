@@ -126,18 +126,13 @@ namespace CoreJIT {
     }
 
     CoreIR::Instance* findInstance(const std::string& name) const {
-      std::cout << "Searching for instance: " << name << std::endl;
 
       CoreIR::ModuleDef* def = m->getDef();
       auto instances = def->getInstances();
-
-      for (auto& inst : instances) {
-        std::cout << inst.first << std::endl;
-      }
-
       auto instIter = instances.find(name);
 
       assert(instIter != std::end(instances));
+
       return instIter->second;
     }
 
