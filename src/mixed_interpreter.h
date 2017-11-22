@@ -23,10 +23,8 @@ namespace CoreJIT {
     void copyInterpState();
 
     void execute() {
-      std::cout << "Calling execute" << std::endl;
 
       if (isJITCreated()) {
-        std::cout << "Created JIT!" << std::endl;
 
         if (firstJITExe) {
           firstJITExe = false;
@@ -35,7 +33,6 @@ namespace CoreJIT {
 
         jitInterp->execute();
       } else {
-        std::cout << "No JIT yet!" << std::endl;
 
         state.execute();
       }

@@ -44,21 +44,8 @@ TEST_CASE("Mixing interpreter and simulator") {
   int lastClk = 0;
   int nextClk = 1;
 
-  // state.setClock("self.clk", 0, 0);
-  // state.setValue("self.in_0", BitVec(16, val));
-  // state.execute();
-
   state.setClock("self.clk", lastClk, nextClk);
   state.setValue("self.in_0", BitVec(16, val));
-
-  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$raddr$reg0",
-  //                      BitVec(8, 1));
-  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_1$waddr$reg0",
-  //                      BitVec(8, 0));
-  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$raddr$reg0",
-  //                      BitVec(8, 1));
-  // state.setRegister("lb_p4_clamped_stencil_update_stream$mem_2$waddr$reg0",
-  //                      BitVec(8, 0));
   
   for (int i = 0; i < 41; i++) {
     nextClk = i % 2;
@@ -82,7 +69,81 @@ TEST_CASE("Mixing interpreter and simulator") {
 
   }
 
-  REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
+  //REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
+
+  deleteContext(c);
+}
+
+TEST_CASE("Harris benchmark") {
+  Context* c = newContext();
+  Namespace* g = c->getGlobal();
+  
+  CoreIRLoadLibrary_commonlib(c);  
+
+  if (!loadFromFile(c,"./test/inputs/_harris.json")) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+
+  c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
+
+  Module* m = g->getModule("DesignTop");
+
+  REQUIRE(m != nullptr);
+
+  int nRuns = 10;
+
+  while (nRuns <= 1000) {
+    MixedInterpreter state(m);
+
+    BitVector one(16, "1");
+    BitVector zero(16, "0");
+    BitVector inVal = one;
+
+
+    int val = 1;
+
+    int lastClk = 0;
+    int nextClk = 1;
+
+    cout << "nRuns = " << nRuns << endl;
+
+    auto start = std::chrono::high_resolution_clock::now();    
+
+    state.setClock("self.clk", lastClk, nextClk);
+    state.setValue("self.in_0", BitVec(16, val));
+
+    for (int i = 0; i < nRuns; i++) {
+      nextClk = i % 2;
+
+      state.setClock("self.clk", lastClk, nextClk);
+
+      state.execute();
+
+      // if ((i % 2) == 0) {
+      //   cout << "Output " << i << " = " <<
+      //     state.getBitVec("self.out").to_type<uint16_t>() << endl;
+      // }
+
+      // if ((i % 2) == 1) {
+      //   val = val + 1;
+      //   state.setValue("self.in_0", BitVec(16, val));
+      // }
+
+      lastClk = nextClk;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto time_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    cout << "Time to compute " << nRuns <<
+      " half cycles = " << time_ms << " ms" << endl;
+    cout << "out_0 = " << state.getBitVec("self.out") << endl;
+  
+    nRuns = nRuns * 10;
+  }
+
+  //REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
 
   deleteContext(c);
 }
