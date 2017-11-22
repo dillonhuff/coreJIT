@@ -91,11 +91,9 @@ TEST_CASE("Harris benchmark") {
 
   REQUIRE(m != nullptr);
 
-  int nRuns = 10;
+  int nRuns = 1;
 
-  while (nRuns <= 1000) {
-    MixedInterpreter state(m);
-
+  while (nRuns <= 1e7) {
     BitVector one(16, "1");
     BitVector zero(16, "0");
     BitVector inVal = one;
@@ -110,6 +108,7 @@ TEST_CASE("Harris benchmark") {
 
     auto start = std::chrono::high_resolution_clock::now();    
 
+    MixedInterpreter state(m);
     state.setClock("self.clk", lastClk, nextClk);
     state.setValue("self.in_0", BitVec(16, val));
 
@@ -141,6 +140,8 @@ TEST_CASE("Harris benchmark") {
     cout << "out_0 = " << state.getBitVec("self.out") << endl;
   
     nRuns = nRuns * 10;
+
+    sleep(1);
   }
 
   //REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
